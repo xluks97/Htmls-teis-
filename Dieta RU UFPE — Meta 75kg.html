@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dieta RU UFPE — Meta 75kg</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        ufpe: {
+                            red: '#9E1B32',
+                            dark: '#7A1325',
+                            light: '#FDF2F4'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Ocultar scrollbar nas abas horizontais mantendo rolagem fluida */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .plate-shadow {
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+        }
+    </style>
+</head>
+<body class="pb-24">
+
+    <!-- Notificação Toast (Substitui alert/confirm) -->
+    <div id="toast-container" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-md pointer-events-none transition-all duration-300 opacity-0 translate-y-4">
+        <div id="toast-box" class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-medium border border-slate-700">
+            <span id="toast-icon" class="text-lg">✅</span>
+            <span id="toast-message">Ação concluída!</span>
+        </div>
+    </div>
+
+    <!-- Cabeçalho Principal -->
+    <header class="bg-gradient-to-r from-ufpe-red to-ufpe-dark text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-3xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-xl font-bold border border-white/20">
+                    🍽️
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base sm:text-lg leading-tight tracking-tight">Dieta RU UFPE</h1>
+                    <p class="text-xs text-rose-100 font-medium">Foco: Volume & Saciedade • Meta 75kg</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleModal('import-modal')" class="bg-white text-ufpe-red hover:bg-rose-50 active:scale-95 transition px-3 py-2 rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5">
+                    <span>🔄</span>
+                    <span>Atualizar Cardápio</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 pt-4 space-y-5">
+
+        <!-- 1. Painel de Progresso de Peso & Passos -->
+        <section class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-ufpe-red bg-rose-50 px-2.5 py-1 rounded-full">Jornada 92kg → 75kg</span>
+                    <h2 class="text-base font-bold text-slate-800 mt-1">Seu Progresso Corporal</h2>
+                </div>
+                <button onclick="toggleModal('weight-modal')" class="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                    <span>⚖️</span>
+                    <span>Registrar Peso / Evolução</span>
+                </button>
+            </div>
+
+            <!-- Grid de Métricas -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p class="text-[11px] text-slate-500 font-medium">Peso Atual</p>
+                    <p class="text-xl font-extrabold text-slate-900 mt-0.5"><span id="stat-current-weight">92.0</span> <span class="text-xs font-semibold text-slate-500">kg</span></p>
+                    <p class="text-[11px] text-emerald-600 font-semibold mt-0.5" id="stat-lost-label">Início: 92.0 kg</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p class="text-[11px] text-slate-500 font-medium">Falta p/ Meta</p>
+                    <p class="text-xl font-extrabold text-ufpe-red mt-0.5"><span id="stat-remaining">17.0</span> <span class="text-xs font-semibold text-slate-500">kg</span></p>
+                    <p class="text-[11px] text-slate-500 font-medium mt-0.5">Meta: 75.0 kg</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p class="text-[11px] text-slate-500 font-medium">IMC (1,74m)</p>
+                    <p class="text-xl font-extrabold text-slate-900 mt-0.5" id="stat-bmi">30.4</p>
+                    <p class="text-[11px] text-slate-500 font-medium mt-0.5">Meta IMC: 24.8</p>
+                </div>
+                <div class="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-100">
+                    <p class="text-[11px] text-emerald-800 font-semibold">Aderência Semana</p>
+                    <p class="text-xl font-extrabold text-emerald-700 mt-0.5" id="stat-adherence">0%</p>
+                    <p class="text-[11px] text-emerald-700/80 font-medium mt-0.5" id="stat-meals-count">0/12 refeições</p>
+                </div>
+            </div>
+
+            <!-- Barra de Progresso até 75kg -->
+            <div class="mb-4">
+                <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1.5">
+                    <span>92 kg (Início)</span>
+                    <span id="weight-progress-pct" class="text-ufpe-red font-bold">0% concluído</span>
+                    <span>75 kg (Meta)</span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+                    <div id="weight-progress-bar" class="h-full bg-gradient-to-r from-ufpe-red to-emerald-500 rounded-full transition-all duration-500" style="width: 2%;"></div>
+                </div>
+            </div>
+
+            <!-- Meta Diária de Passos (Sair do sedentarismo sem academia) -->
+            <div class="bg-amber-50/70 border border-amber-200/70 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-2xl">👟</span>
+                    <div>
+                        <p class="text-xs font-bold text-amber-950">Meta Anti-Sedentarismo: <span id="steps-display">0</span> / 7.000 passos hoje</p>
+                        <p class="text-[11px] text-amber-800">Caminhar 20-30 min no campus já acelera a queima sem academia.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 self-end sm:self-center">
+                    <button onclick="addSteps(1000)" class="bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs px-2.5 py-1.5 rounded-xl transition active:scale-95">+1.000</button>
+                    <button onclick="addSteps(2500)" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-2.5 py-1.5 rounded-xl transition active:scale-95">+2.500</button>
+                    <button onclick="resetSteps()" title="Zerar passos do dia" class="text-amber-700 hover:bg-amber-200/50 p-1.5 rounded-xl text-xs">↺</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Guia Visual de Fila (Prato Ideal + Medidas Caseiras) -->
+        <section class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">Guia Rápido na Fila do RU</h2>
+                    <p class="text-xs text-slate-500">Encha o prato com baixa densidade calórica — sem pesar nada</p>
+                </div>
+                <button onclick="toggleGuideDetails()" id="btn-toggle-guide" class="text-xs font-bold text-ufpe-red bg-rose-50 px-3 py-1.5 rounded-xl">
+                    Ocultar Guia
+                </button>
+            </div>
+
+            <div id="visual-guide-content" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center pt-1">
+                <!-- Diagrama SVG Interativo do Prato -->
+                <div class="md:col-span-5 flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                    <svg viewBox="0 0 220 220" class="w-44 h-44 drop-shadow-sm">
+                        <!-- Borda externa do prato -->
+                        <circle cx="110" cy="110" r="102" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="3"/>
+                        <circle cx="110" cy="110" r="92" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.5"/>
+                        
+                        <!-- Metade Esquerda (50%): Salada Crua + Legumes Cozidos -->
+                        <path d="M 110 18 A 92 92 0 0 0 110 202 Z" fill="#DCFCE7" stroke="#22C55E" stroke-width="2"/>
+                        
+                        <!-- Quarto Superior Direito (25%): Proteína Magra -->
+                        <path d="M 110 18 A 92 92 0 0 1 202 110 L 110 110 Z" fill="#FEE2E2" stroke="#EF4444" stroke-width="2"/>
+                        
+                        <!-- Quarto Inferior Direito (25%): Feijão + 1 Carboidrato -->
+                        <path d="M 110 110 L 202 110 A 92 92 0 0 1 110 202 Z" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+
+                        <!-- Textos dentro do prato -->
+                        <text x="64" y="102" text-anchor="middle" fill="#15803D" font-size="14" font-weight="800">50%</text>
+                        <text x="64" y="117" text-anchor="middle" fill="#166534" font-size="9.5" font-weight="700">Salada &</text>
+                        <text x="64" y="129" text-anchor="middle" fill="#166534" font-size="9.5" font-weight="700">Legumes</text>
+
+                        <text x="148" y="72" text-anchor="middle" fill="#B91C1C" font-size="13" font-weight="800">25%</text>
+                        <text x="148" y="86" text-anchor="middle" fill="#991B1B" font-size="9.5" font-weight="700">Proteína</text>
+
+                        <text x="148" y="146" text-anchor="middle" fill="#B45309" font-size="13" font-weight="800">25%</text>
+                        <text x="148" y="160" text-anchor="middle" fill="#92400E" font-size="9" font-weight="700">Feijão +</text>
+                        <text x="148" y="171" text-anchor="middle" fill="#92400E" font-size="9" font-weight="700">1 Carbo</text>
+                    </svg>
+                    <span class="text-[11px] font-semibold text-slate-500 mt-1">Divisão visual antes de sentar</span>
+                </div>
+
+                <!-- Legenda dos Utensílios do RU -->
+                <div class="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="p-2.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/60">
+                        <div class="flex items-center gap-1.5 font-bold text-xs text-emerald-900">
+                            <span>🥗</span> Pegador de Salada
+                        </div>
+                        <p class="text-[11px] text-emerald-800 mt-1 leading-relaxed">
+                            <strong>2 pegadores bem cheios</strong> de salada crua + <strong>1,5 escumadeira</strong> de legumes cozidos (abobrinha, chuchu, abóbora, repolho).
+                        </p>
+                    </div>
+
+                    <div class="p-2.5 rounded-2xl bg-rose-50/80 border border-rose-200/60">
+                        <div class="flex items-center gap-1.5 font-bold text-xs text-rose-900">
+                            <span>🍗</span> Escumadeira de Proteína
+                        </div>
+                        <p class="text-[11px] text-rose-800 mt-1 leading-relaxed">
+                            <strong>1 escumadeira cheia</strong> (cubos/iscas/moída) ou <strong>1 pedaço grande</strong> (frango/lombo) ou <strong>3 colheres</strong> de ovos.
+                        </p>
+                    </div>
+
+                    <div class="p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/60">
+                        <div class="flex items-center gap-1.5 font-bold text-xs text-amber-900">
+                            <span>🫘</span> Concha de Feijão
+                        </div>
+                        <p class="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                            <strong>1,5 concha</strong> (puxando mais grãos que caldo). Segura a fome por horas sem pesar nas calorias.
+                        </p>
+                    </div>
+
+                    <div class="p-2.5 rounded-2xl bg-blue-50/80 border border-blue-200/60">
+                        <div class="flex items-center gap-1.5 font-bold text-xs text-blue-900">
+                            <span>🍚</span> Escumadeira de Carboidrato
+                        </div>
+                        <p class="text-[11px] text-blue-800 mt-1 leading-relaxed">
+                            Almoço: <strong>1 escumadeira rasa</strong> de arroz (corte macarrão/farofa). Jantar: <strong>1 pedaço médio</strong> de raiz/cuscuz (sem pão).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Cardápio Semanal Inteligente -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">Cardápio da Semana</h2>
+                    <p id="menu-week-subtitle" class="text-xs text-slate-500 font-medium">Semana de 16/11 a 20/11 • Campus Recife</p>
+                </div>
+                <button onclick="copyWhatsAppSummary()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <span>📲</span>
+                    <span>Copiar p/ WhatsApp</span>
+                </button>
+            </div>
+
+            <!-- Abas dos Dias da Semana -->
+            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1" id="day-tabs-container">
+                <!-- Gerado via JS -->
+            </div>
+
+            <!-- Conteúdo das Refeições do Dia Selecionado -->
+            <div id="day-meals-container" class="space-y-4">
+                <!-- Gerado via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL 1: Importador / Atualizador Semanal do Cardápio do RU -->
+    <div id="import-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div>
+                    <h3 class="font-extrabold text-base text-slate-900">Atualizar Cardápio Semanal do RU</h3>
+                    <p class="text-xs text-slate-500">Aplica automaticamente suas medidas (concha, escumadeira, pegador)</p>
+                </div>
+                <button onclick="toggleModal('import-modal')" class="w-9 h-9 rounded-full bg-slate-200/70 hover:bg-slate-300 flex items-center justify-center font-bold text-slate-700">✕</button>
+            </div>
+
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4">
+                <!-- Opção A: Tentativa Automática via Fetch/Proxy -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">1. Busca Direta no Site da UFPE</p>
+                            <p class="text-[11px] text-slate-500">Tenta ler <code class="bg-slate-200 px-1 rounded">ru.ufpe.br/recife/cardapio/</code> automaticamente.</p>
+                        </div>
+                        <button onclick="fetchRUMenuAuto()" id="btn-auto-fetch" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shrink-0">
+                            <span>🌐</span>
+                            <span>Tentar Buscar Automaticamente</span>
+                        </button>
+                    </div>
+                    <div id="fetch-status-box" class="hidden mt-2.5 text-xs p-2.5 rounded-xl"></div>
+                </div>
+
+                <!-- Opção B: Colar Texto do Site (100% confiável no celular ou PC) -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label for="raw-menu-input" class="text-xs font-bold text-slate-800">2. Ou Cole o Texto do Cardápio Aqui (Recomendado):</label>
+                        <a href="https://ru.ufpe.br/recife/cardapio/" target="_blank" rel="noopener" class="text-xs font-bold text-ufpe-red underline">Abrir site do RU ↗</a>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">
+                        Abra o link do RU, selecione tudo (<strong>Ctrl+A</strong> e <strong>Ctrl+C</strong> no PC, ou <strong>Selecionar tudo → Copiar</strong> no celular) e cole abaixo. O sistema separa os dias, refeições e calcula as porções na hora.
+                    </p>
+                    <textarea id="raw-menu-input" rows="7" placeholder="Cole aqui o texto copiado da página do cardápio do RU UFPE..." class="w-full rounded-2xl border border-slate-300 p-3 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-ufpe-red bg-slate-50"></textarea>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
+                <button onclick="loadDefaultWeekMenu()" class="text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-xl hover:bg-slate-200/60 transition">
+                    Restaurar Semana Padrão (16/11 - 20/11)
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="toggleModal('import-modal')" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-200/70 hover:bg-slate-300 transition">Cancelar</button>
+                    <button onclick="processPastedMenu()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-ufpe-red hover:bg-ufpe-dark shadow-sm transition">
+                        Gerar Dieta da Semana ✨
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Registro de Peso e Gráfico de Evolução -->
+    <div id="weight-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div>
+                    <h3 class="font-extrabold text-base text-slate-900">Evolução de Peso (Meta: 75,0 kg)</h3>
+                    <p class="text-xs text-slate-500">Pese-se 1x por semana, em jejum, para acompanhar a tendência</p>
+                </div>
+                <button onclick="toggleModal('weight-modal')" class="w-9 h-9 rounded-full bg-slate-200/70 hover:bg-slate-300 flex items-center justify-center font-bold text-slate-700">✕</button>
+            </div>
+
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4">
+                <!-- Formulário de Novo Peso -->
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Novo Peso (kg)</label>
+                        <input type="number" step="0.1" min="50" max="200" id="input-new-weight" placeholder="Ex: 91.2" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-ufpe-red">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Data</label>
+                        <input type="date" id="input-weight-date" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ufpe-red">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="saveWeightEntry()" class="bg-ufpe-red hover:bg-ufpe-dark text-white font-bold text-xs px-4 py-3 rounded-xl transition shadow-sm">
+                            Salvar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gráfico SVG de Evolução -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3">
+                    <p class="text-xs font-bold text-slate-700 mb-2">Curva Rumo aos 75 kg</p>
+                    <div id="weight-chart-container" class="w-full h-44 flex items-center justify-center">
+                        <!-- SVG renderizado via JS -->
+                    </div>
+                </div>
+
+                <!-- Histórico -->
+                <div>
+                    <p class="text-xs font-bold text-slate-700 mb-2">Histórico de Pesagens</p>
+                    <div id="weight-history-list" class="space-y-1.5 max-h-40 overflow-y-auto">
+                        <!-- Lista via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Editar Item Manualmente -->
+    <div id="edit-meal-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-extrabold text-sm text-slate-900" id="edit-modal-title">Editar Refeição</h3>
+                <button onclick="toggleModal('edit-meal-modal')" class="w-8 h-8 rounded-full bg-slate-200/70 flex items-center justify-center font-bold text-slate-700 text-xs">✕</button>
+            </div>
+            <div class="p-4 space-y-3" id="edit-modal-body">
+                <!-- Campos dinâmicos -->
+            </div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+                <button onclick="toggleModal('edit-meal-modal')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-200">Cancelar</button>
+                <button onclick="saveEditedMeal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-ufpe-red">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ESTADO GLOBAL E PERSISTÊNCIA (localStorage)
+         */
+        const STORAGE_KEY = 'dieta_ru_ufpe_v1';
+
+        const DEFAULT_STATE = {
+            profile: {
+                startWeight: 92.0,
+                currentWeight: 92.0,
+                targetWeight: 75.0,
+                height: 1.74
+            },
+            weightHistory: [
+                { date: '2026-11-16', weight: 92.0 }
+            ],
+            steps: {
+                date: new Date().toISOString().split('T')[0],
+                count: 0
+            },
+            selectedDayIndex: 0,
+            weekTitle: 'Semana de 16/11 a 20/11/2026',
+            completedMeals: {}, // ex: { "seg-almoco": true }
+            selectedAlternatives: {}, // ex: { "seg-jantar": 1 }
+            weekMenu: null
+        };
+
+        let appState = loadState();
+        let currentEditingContext = null;
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    // Resetar passos se mudou o dia
+                    const today = new Date().toISOString().split('T')[0];
+                    if (!parsed.steps || parsed.steps.date !== today) {
+                        parsed.steps = { date: today, count: 0 };
+                    }
+                    return { ...DEFAULT_STATE, ...parsed };
+                }
+            } catch (e) {
+                console.error('Erro ao carregar localStorage:', e);
+            }
+            return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            } catch (e) {
+                console.error('Erro ao salvar localStorage:', e);
+            }
+        }
+
+        /**
+         * CARDÁPIO PRÉ-CARREGADO REAL DA SEMANA (16/11/2026 a 20/11/2026)
+         * Incluindo aviso de feriado na sexta-feira 20/11 (Dia da Consciência Negra)
+         */
+        function getInitialWeekMenu() {
+            return [
+                {
+                    id: 'seg',
+                    shortName: 'Seg',
+                    fullName: 'Segunda-feira (16/11)',
+                    isHoliday: false,
+                    meals: {
+                        desjejum: {
+                            title: 'Desjejum',
+                            time: '07:00 - 08:30',
+                            rawCategories: {
+                                fruta: 'Melão / Banana',
+                                proteina: 'Ovos mexidos / Carne moída',
+                                carbo: 'Cuscuz de milho / Pão francês',
+                                bebida: 'Café / Leite / Suco'
+                            },
+                            prescriptions: [
+                                { icon: '🍎', utensil: '1 unidade / fatia', item: 'Melão ou Banana', rule: 'Coma a fruta inteira para dar fibras logo cedo.', status: 'good' },
+                                { icon: '🍳', utensil: '3 colheres sopa (ou 1 escumadeira)', item: 'Ovos mexidos ou Carne moída', rule: 'Proteína essencial para segurar a fome até o almoço.', status: 'good' },
+                                { icon: '🌽', utensil: '1 fatia média', item: 'Cuscuz de milho', rule: 'Escolha só o cuscuz. Pule o pão francês e a manteiga.', status: 'good' },
+                                { icon: '☕', utensil: '1 copo', item: 'Café puro (ou com adoçante)', rule: 'Corte o suco e o achocolatado.', status: 'cut', cutText: 'Cortar: Suco e Manteiga' }
+                            ],
+                            alternatives: []
+                        },
+                        almoco: {
+                            title: 'Almoço (O Pratão Estratégico)',
+                            time: '11:00 - 14:00',
+                            rawCategories: {
+                                entrada: 'Salada crua (Alface, tomate, cenoura) / Salada de batata',
+                                principal: 'Frango na aveia / Proteína de soja refogada',
+                                acompanhamento: 'Feijão mulatinho / Arroz colorido / Espaguete alho e óleo',
+                                sobremesa: 'Fruta da época / Suco'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua (Alface, tomate, cenoura)', rule: 'Metade do prato! Pule a salada de batata (maionese).', status: 'good' },
+                                { icon: '🍗', utensil: '1 pedaço grande', item: 'Frango na aveia', rule: 'Excelente opção proteica. Tire excesso de pele se houver.', status: 'good' },
+                                { icon: '🫘', utensil: '1,5 concha', item: 'Feijão mulatinho', rule: 'Puxe mais grãos que caldo. Alta saciedade.', status: 'good' },
+                                { icon: '🍚', utensil: '1 escumadeira rasa', item: 'Arroz colorido', rule: 'Apenas 1 fonte de carboidrato. Passe direto pelo espaguete!', status: 'good' },
+                                { icon: '🍊', utensil: '1 unidade', item: 'Fruta de sobremesa + Água', rule: 'Coma a fruta inteira e corte o copo de suco.', status: 'cut', cutText: 'Cortar: Espaguete, Salada de Batata e Suco' }
+                            ],
+                            alternatives: [
+                                {
+                                    label: 'Opção Vegetariana',
+                                    items: [
+                                        { icon: '🥗', utensil: '2 pegadores cheios', item: 'Salada crua (sem salada de batata)', rule: 'Base de volume do prato.', status: 'good' },
+                                        { icon: '🌱', utensil: '1,5 escumadeira', item: 'Proteína de soja refogada', rule: 'Boa fonte proteica magra.', status: 'good' },
+                                        { icon: '🫘', utensil: '1,5 concha', item: 'Feijão mulatinho', rule: 'Mais grãos que caldo.', status: 'good' },
+                                        { icon: '🍚', utensil: '1 escumadeira rasa', item: 'Arroz colorido (sem espaguete)', rule: 'Mantenha apenas 1 carboidrato.', status: 'good' }
+                                    ]
+                                }
+                            ]
+                        },
+                        jantar: {
+                            title: 'Jantar (Volume com Menos Carboidrato)',
+                            time: '17:00 - 19:30',
+                            rawCategories: {
+                                entrada: 'Salada crua / Sopa de legumes com frango',
+                                principal: 'Isca de frango acebolada / Omelete de forno',
+                                acompanhamento: 'Macaxeira cozida / Arroz branco / Feijão / Pão',
+                                bebida: 'Suco / Café'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua variada', rule: 'Comece pela salada para preencher o estômago.', status: 'good' },
+                                { icon: '🍗', utensil: '1 escumadeira cheia', item: 'Isca de frango acebolada', rule: 'Proteína magra ideal para a noite.', status: 'good' },
+                                { icon: '🥔', utensil: '1 pedaço médio (tamanho do punho)', item: 'Macaxeira cozida', rule: 'Substitui o arroz e o pão. Não pegue pão à noite!', status: 'good' },
+                                { icon: '☕', utensil: '1 copo', item: 'Café puro ou Água', rule: 'Corte o pão de complemento e o suco adoçado.', status: 'cut', cutText: 'Cortar: Pão francês e Suco' }
+                            ],
+                            alternatives: [
+                                {
+                                    label: 'Alternativa Leve (Sopa)',
+                                    items: [
+                                        { icon: '🥗', utensil: '2 pegadores cheios', item: 'Salada crua no prato', rule: 'Garante mastigação e saciedade.', status: 'good' },
+                                        { icon: '🍲', utensil: '2 conchas cheias', item: 'Sopa de legumes com frango', rule: 'Substitui a macaxeira e o arroz. Não coma pão junto.', status: 'good' },
+                                        { icon: '🍳', utensil: '1 fatia média', item: 'Omelete de forno (opcional)', rule: 'Reforço proteico se estiver com muita fome.', status: 'good' }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    id: 'ter',
+                    shortName: 'Ter',
+                    fullName: 'Terça-feira (17/11)',
+                    isHoliday: false,
+                    meals: {
+                        desjejum: {
+                            title: 'Desjejum',
+                            time: '07:00 - 08:30',
+                            rawCategories: {
+                                fruta: 'Mamão / Laranja',
+                                proteina: 'Queijo prato / Hambúrguer bovino',
+                                carbo: 'Pão francês / Canjiquinha',
+                                bebida: 'Café / Bebida láctea'
+                            },
+                            prescriptions: [
+                                { icon: '🍈', utensil: '1 fatia média', item: 'Mamão (ou 1 laranja)', rule: 'Rico em fibras para o intestino.', status: 'good' },
+                                { icon: '🧀', utensil: '2 fatias (ou 1 hambúrguer)', item: 'Queijo prato ou Hambúrguer', rule: 'Proteína para evitar pico de glicemia.', status: 'good' },
+                                { icon: '🥖', utensil: '1 unidade (sem manteiga)', item: 'Pão francês', rule: 'Pule a canjiquinha e a bebida láctea adoçada.', status: 'good' },
+                                { icon: '☕', utensil: '1 copo', item: 'Café puro', rule: 'Evite bebida láctea açucarada.', status: 'cut', cutText: 'Cortar: Canjiquinha e Bebida Láctea' }
+                            ],
+                            alternatives: []
+                        },
+                        almoco: {
+                            title: 'Almoço (O Pratão Estratégico)',
+                            time: '11:00 - 14:00',
+                            rawCategories: {
+                                entrada: 'Salada crua / Salada cozida (Abobrinha, abóbora e chuchu)',
+                                principal: 'Lombo suíno ao vinagrete / Quiche de legumes',
+                                acompanhamento: 'Feijão macassar / Arroz com cenoura / Quibebe',
+                                sobremesa: 'Fruta / Bombom de chocolate'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua', rule: 'Base do prato.', status: 'good' },
+                                { icon: '🥒', utensil: '1,5 escumadeira cheia', item: 'Salada cozida (Abobrinha, abóbora e chuchu)', rule: 'Pode caprichar! Baixíssima caloria e enche muito.', status: 'good' },
+                                { icon: '🥩', utensil: '1 pedaço grande', item: 'Lombo suíno ao vinagrete', rule: 'Muito mais magro e proteico que a quiche.', status: 'good' },
+                                { icon: '🫘', utensil: '1,5 concha', item: 'Feijão macassar', rule: 'Puxe bastante grão.', status: 'good' },
+                                { icon: '🍚', utensil: '1 escumadeira rasa', item: 'Arroz com cenoura', rule: 'Pule o quibebe e o bombom de sobremesa.', status: 'cut', cutText: 'Evitar: Quiche, Quibebe e Chocolate' }
+                            ],
+                            alternatives: []
+                        },
+                        jantar: {
+                            title: 'Jantar (Volume com Menos Carboidrato)',
+                            time: '17:00 - 19:30',
+                            rawCategories: {
+                                entrada: 'Salada crua / Sopa de feijão preto',
+                                principal: 'Frango assado / Croquete de soja',
+                                acompanhamento: 'Cuscuz / Espaguete / Pão',
+                                sobremesa: 'Arroz doce / Suco'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua', rule: 'Garante volume alto com quase zero calorias.', status: 'good' },
+                                { icon: '🍗', utensil: '1 pedaço grande (sem pele)', item: 'Frango assado', rule: 'Excelente saciedade noturna.', status: 'good' },
+                                { icon: '🌽', utensil: '1 fatia média', item: 'Cuscuz', rule: 'Escolha apenas o cuscuz. Corte espaguete, pão e arroz doce.', status: 'cut', cutText: 'Cortar: Espaguete, Pão, Arroz Doce e Suco' }
+                            ],
+                            alternatives: [
+                                {
+                                    label: 'Alternativa Leve (Sopa de Feijão)',
+                                    items: [
+                                        { icon: '🥗', utensil: '2 pegadores cheios', item: 'Salada crua', rule: 'Comece pela salada.', status: 'good' },
+                                        { icon: '🍲', utensil: '2 conchas cheias', item: 'Sopa de feijão preto', rule: 'Substitui o cuscuz e o pão. Rico em fibras.', status: 'good' },
+                                        { icon: '🍗', utensil: '1 pedaço', item: 'Frango assado (sem pele)', rule: 'Mantém a proteína alta.', status: 'good' }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    id: 'qua',
+                    shortName: 'Qua',
+                    fullName: 'Quarta-feira (18/11)',
+                    isHoliday: false,
+                    meals: {
+                        desjejum: {
+                            title: 'Desjejum',
+                            time: '07:00 - 08:30',
+                            rawCategories: {
+                                fruta: 'Salada de frutas',
+                                proteina: 'Ovos mexidos / Salsicha ao molho',
+                                carbo: 'Macaxeira cozida / Pão francês',
+                                bebida: 'Café / Leite'
+                            },
+                            prescriptions: [
+                                { icon: '🍓', utensil: '1 concha / tigela pequena', item: 'Salada de frutas', rule: 'Ótima opção rica em água e fibras.', status: 'good' },
+                                { icon: '🍳', utensil: '3 colheres de sopa', item: 'Ovos mexidos', rule: 'Priorize os ovos! Evite a salsicha (ultraprocessada/gordurosa).', status: 'good' },
+                                { icon: '🥔', utensil: '1 pedaço médio', item: 'Macaxeira cozida', rule: 'Dá mais saciedade que o pão francês.', status: 'cut', cutText: 'Evitar: Salsicha e Pão extra' }
+                            ],
+                            alternatives: []
+                        },
+                        almoco: {
+                            title: 'Almoço (O Pratão Estratégico)',
+                            time: '11:00 - 14:00',
+                            rawCategories: {
+                                entrada: 'Salada crua / Salada cozida (Cenoura, vagem e batata inglesa)',
+                                principal: 'Calabresa acebolada / Bolinho de soja / Lasanha de frango',
+                                acompanhamento: 'Feijão preto / Arroz refogado / Farofa',
+                                sobremesa: 'Fruta / Doce de banana'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua', rule: 'Encha metade do prato aqui.', status: 'good' },
+                                { icon: '🥕', utensil: '1 escumadeira', item: 'Cenoura e vagem cozidas', rule: 'Pegue a cenoura e a vagem, desviando da batata inglesa.', status: 'good' },
+                                { icon: '🧆', utensil: '3 unidades (ou 1 escumadeira rasa de calabresa)', item: 'Bolinho de soja (ou Calabresa sem excesso de óleo)', rule: '⚠️ Alerta: Evite a Lasanha (muita massa e gordura).', status: 'warn' },
+                                { icon: '🫘', utensil: '1,5 concha', item: 'Feijão preto', rule: 'Excelente volume e fibras.', status: 'good' },
+                                { icon: '🍚', utensil: '1 escumadeira rasa', item: 'Arroz refogado', rule: 'Corte a farofa e o doce de banana (fique na fruta).', status: 'cut', cutText: 'Cortar: Lasanha, Farofa, Doce de Banana e Suco' }
+                            ],
+                            alternatives: []
+                        },
+                        jantar: {
+                            title: 'Jantar (Volume com Menos Carboidrato)',
+                            time: '17:00 - 19:30',
+                            rawCategories: {
+                                entrada: 'Salada crua / Canja de galinha',
+                                principal: 'Bobó de frango / Ensopado de grão-de-bico',
+                                acompanhamento: 'Cará cozido / Arroz branco / Pão',
+                                bebida: 'Suco / Café'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua', rule: 'Volume garantido.', status: 'good' },
+                                { icon: '🍲', utensil: '1,5 concha (ou 1 concha de bobó)', item: 'Ensopado de grão-de-bico ou Bobó de frango', rule: '⚠️ O bobó leva leite de coco/azeite (mais calórico): pegue 1 concha e reduza a raiz.', status: 'warn' },
+                                { icon: '🍠', utensil: '1 pedaço médio (ou ½ escumadeira de arroz)', item: 'Cará cozido', rule: 'Corte o pão do jantar!', status: 'cut', cutText: 'Cortar: Pão francês e Suco' }
+                            ],
+                            alternatives: [
+                                {
+                                    label: 'Alternativa Leve (Canja)',
+                                    items: [
+                                        { icon: '🥗', utensil: '2 pegadores cheios', item: 'Salada crua', rule: 'Antes da canja para dar saciedade.', status: 'good' },
+                                        { icon: '🍲', utensil: '2 conchas cheias', item: 'Canja de galinha', rule: 'Já tem arroz e frango juntos. Não pegue cará nem pão.', status: 'good' }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    id: 'qui',
+                    shortName: 'Qui',
+                    fullName: 'Quinta-feira (19/11)',
+                    isHoliday: false,
+                    meals: {
+                        desjejum: {
+                            title: 'Desjejum',
+                            time: '07:00 - 08:30',
+                            rawCategories: {
+                                fruta: 'Melancia / Banana',
+                                proteina: 'Cubos de frango ao molho / Ovos mexidos',
+                                carbo: 'Cará cozido / Pão francês',
+                                bebida: 'Café / Leite'
+                            },
+                            prescriptions: [
+                                { icon: '🍉', utensil: '1 fatia grande', item: 'Melancia', rule: 'Muita água, pouquíssima caloria.', status: 'good' },
+                                { icon: '🍗', utensil: '1 escumadeira (ou 3 colheres de ovos)', item: 'Cubos de frango ao molho ou Ovos', rule: 'Proteína de alto valor biológico.', status: 'good' },
+                                { icon: '🍠', utensil: '1 pedaço médio', item: 'Cará cozido', rule: 'Substitui o pão e a manteiga.', status: 'cut', cutText: 'Cortar: Pão, Manteiga e Suco' }
+                            ],
+                            alternatives: []
+                        },
+                        almoco: {
+                            title: 'Almoço (O Pratão Estratégico)',
+                            time: '11:00 - 14:00',
+                            rawCategories: {
+                                entrada: 'Salada crua / Salada cozida (Repolho, chuchu e abóbora)',
+                                principal: 'Lombo suíno ao barbecue / Bolonhesa de lentilha / Quiche',
+                                acompanhamento: 'Feijão mulatinho / Arroz carioca / Purê de batata',
+                                sobremesa: 'Melancia / Suco'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua', rule: 'Base do pratão.', status: 'good' },
+                                { icon: '🥬', utensil: '1,5 escumadeira cheia', item: 'Salada cozida (Repolho, chuchu e abóbora)', rule: 'Trio perfeito para encher o prato sem engordar.', status: 'good' },
+                                { icon: '🥩', utensil: '1 pedaço grande (ou 1 concha de lentilha)', item: 'Lombo suíno ao barbecue (ou Bolonhesa de lentilha)', rule: 'Pule a quiche (massa rica em gordura).', status: 'good' },
+                                { icon: '🫘', utensil: '1,5 concha', item: 'Feijão mulatinho', rule: 'Mais grãos que caldo.', status: 'good' },
+                                { icon: '🍚', utensil: '1 escumadeira rasa', item: 'Arroz carioca', rule: 'Passe direto pelo purê de batata! Sobremesa: Melancia.', status: 'cut', cutText: 'Cortar: Quiche, Purê de Batata e Suco' }
+                            ],
+                            alternatives: []
+                        },
+                        jantar: {
+                            title: 'Jantar (Volume com Menos Carboidrato)',
+                            time: '17:00 - 19:30',
+                            rawCategories: {
+                                entrada: 'Salada crua / Sopa de feijão com carne',
+                                principal: 'Cubos de carne acebolados / Estrogonofe de soja',
+                                acompanhamento: 'Batata doce / Espaguete / Pão',
+                                bebida: 'Suco / Café'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '2 pegadores bem cheios', item: 'Salada crua', rule: 'Metade do prato.', status: 'good' },
+                                { icon: '🥩', utensil: '1 escumadeira cheia', item: 'Cubos de carne acebolados', rule: 'Priorize a carne acebolada em vez do estrogonofe (creme de leite).', status: 'good' },
+                                { icon: '🍠', utensil: '1 pedaço médio', item: 'Batata doce cozida', rule: 'Excelente carboidrato noturno. Corte o espaguete e o pão!', status: 'cut', cutText: 'Cortar: Espaguete, Estrogonofe, Pão e Suco' }
+                            ],
+                            alternatives: [
+                                {
+                                    label: 'Alternativa Leve (Sopa de Feijão)',
+                                    items: [
+                                        { icon: '🥗', utensil: '2 pegadores cheios', item: 'Salada crua', rule: 'Volume extra.', status: 'good' },
+                                        { icon: '🍲', utensil: '2 conchas cheias', item: 'Sopa de feijão com carne', rule: 'Substitui a batata doce e o pão.', status: 'good' }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    id: 'sex',
+                    shortName: 'Sex',
+                    fullName: 'Sexta-feira (20/11 — Feriado)',
+                    isHoliday: true,
+                    holidayReason: 'Feriado Nacional (Dia da Consciência Negra) — RU Fechado. Siga o protocolo abaixo em casa para não perder o ritmo da semana!',
+                    meals: {
+                        almoco: {
+                            title: 'Almoço em Casa (Mesma Proporção do RU)',
+                            time: '12:00 - 13:30',
+                            rawCategories: {
+                                base: 'Salada crua + Legumes cozidos + Feijão + Arroz + Frango/Ovos'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '½ do prato', item: 'Salada crua e legumes (tomate, alface, cenoura, chuchu)', rule: 'Mantenha o hábito visual do bandejão.', status: 'good' },
+                                { icon: '🍗', utensil: '1 filé grande (ou 3 ovos)', item: 'Peito de frango grelhado / Carne magra / Ovos', rule: 'Evite frituras por imersão.', status: 'good' },
+                                { icon: '🫘', utensil: '1,5 concha', item: 'Feijão caseiro', rule: 'Mantém a saciedade da tarde.', status: 'good' },
+                                { icon: '🍚', utensil: '3 a 4 colheres de sopa (1 escumadeira rasa)', item: 'Arroz branco ou integral', rule: 'Sem repetir prato e sem suco adoçado.', status: 'cut', cutText: 'Cortar: Refrigerante comum, Suco de caixinha e Repetição' }
+                            ],
+                            alternatives: []
+                        },
+                        jantar: {
+                            title: 'Jantar em Casa (Foco em Proteína + Raiz/Cuscuz)',
+                            time: '19:00 - 20:30',
+                            rawCategories: {
+                                base: 'Cuscuz ou Macaxeira + Ovos/Frango + Salada'
+                            },
+                            prescriptions: [
+                                { icon: '🥗', utensil: '1 prato de sobremesa cheio', item: 'Salada crua ou legumes refogados', rule: 'Dá volume antes do prato principal.', status: 'good' },
+                                { icon: '🍳', utensil: '3 ovos mexidos (ou 1 escumadeira de frango desfiado)', item: 'Proteína magra', rule: 'Alta saciedade noturna.', status: 'good' },
+                                { icon: '🌽', utensil: '1 fatia média de cuscuz (ou 1 pedaço de macaxeira)', item: 'Carboidrato único da noite', rule: 'Não misture cuscuz com pão.', status: 'cut', cutText: 'Cortar: Pão extra, Biscoitos e Delivery calórico' }
+                            ],
+                            alternatives: []
+                        }
+                    }
+                }
+            ];
+        }
+
+        if (!appState.weekMenu) {
+            appState.weekMenu = getInitialWeekMenu();
+            saveState();
+        }
+
+        /**
+         * MOTOR INTELIGENTE DE PARSER E REGRAS NUTRICIONAIS DO RU UFPE
+         * Analisa texto colado do site ru.ufpe.br/recife/cardapio/ e aplica regras de volume/utensílios
+         */
+        function parseRUMenuText(rawText) {
+            const text = rawText.replace(/\r/g, '');
+            const dayPatterns = [
+                { id: 'seg', shortName: 'Seg', regex: /segunda[\s-]*feira[^\n]*/i, defaultLabel: 'Segunda-feira' },
+                { id: 'ter', shortName: 'Ter', regex: /ter[çc]a[\s-]*feira[^\n]*/i, defaultLabel: 'Terça-feira' },
+                { id: 'qua', shortName: 'Qua', regex: /quarta[\s-]*feira[^\n]*/i, defaultLabel: 'Quarta-feira' },
+                { id: 'qui', shortName: 'Qui', regex: /quinta[\s-]*feira[^\n]*/i, defaultLabel: 'Quinta-feira' },
+                { id: 'sex', shortName: 'Sex', regex: /sexta[\s-]*feira[^\n]*/i, defaultLabel: 'Sexta-feira' }
+            ];
+
+            // Encontrar posições de cada dia no texto
+            const foundDays = [];
+            dayPatterns.forEach(dp => {
+                const match = text.match(dp.regex);
+                if (match) {
+                    foundDays.push({
+                        ...dp,
+                        index: match.index,
+                        headerText: match[0].trim()
+                    });
+                }
+            });
+
+            if (foundDays.length === 0) {
+                return null;
+            }
+
+            foundDays.sort((a, b) => a.index - b.index);
+
+            // Extrair título da semana se existir
+            const weekMatch = text.match(/card[áa]pio\s+(?:de\s+)?(\d{2}\/\d{2}[^\n]*)/i) || text.match(/(\d{2}\/\d{2}\s*(?:a|à|-)\s*\d{2}\/\d{2}(?:\/\d{4})?)/i);
+            const detectedWeekTitle = weekMatch ? `Semana de ${weekMatch[1].trim()}` : 'Semana Atualizada do RU';
+
+            const parsedMenu = foundDays.map((dayObj, idx) => {
+                const start = dayObj.index + dayObj.headerText.length;
+                const end = idx + 1 < foundDays.length ? foundDays[idx + 1].index : text.length;
+                const dayChunk = text.slice(start, end).trim();
+
+                // Verificar se é feriado / fechado
+                if (/feriado|n[ãa]o\s+haver[áa]\s+funcionamento|fechado|recesso/i.test(dayChunk) && dayChunk.length < 220) {
+                    return {
+                        id: dayObj.id,
+                        shortName: dayObj.shortName,
+                        fullName: dayObj.headerText,
+                        isHoliday: true,
+                        holidayReason: dayChunk.replace(/\n+/g, ' ').trim(),
+                        meals: getInitialWeekMenu()[4].meals // Plano caseiro padrão para feriado
+                    };
+                }
+
+                // Dividir chunk do dia em Desjejum, Almoço e Jantar
+                const meals = extractMealsFromDayChunk(dayChunk);
+
+                return {
+                    id: dayObj.id,
+                    shortName: dayObj.shortName,
+                    fullName: dayObj.headerText,
+                    isHoliday: false,
+                    meals
+                };
+            });
+
+            return {
+                weekTitle: detectedWeekTitle,
+                days: parsedMenu
+            };
+        }
+
+        function extractMealsFromDayChunk(chunk) {
+            const mealMarkers = [
+                { key: 'desjejum', regex: /(?:^|\n)\s*(?:desjejum|caf[ée]\s+da\s+manh[ãa])\s*:?/i },
+                { key: 'almoco', regex: /(?:^|\n)\s*almo[çc]o\s*:?/i },
+                { key: 'jantar', regex: /(?:^|\n)\s*jantar\s*:?/i }
+            ];
+
+            const positions = [];
+            mealMarkers.forEach(m => {
+                const match = chunk.match(m.regex);
+                if (match) {
+                    positions.push({ key: m.key, index: match.index, len: match[0].length });
+                }
+            });
+
+            positions.sort((a, b) => a.index - b.index);
+
+            const resultMeals = {};
+
+            if (positions.length === 0) {
+                // Fallback caso o texto colado não tenha cabeçalhos explícitos de refeição
+                resultMeals.almoco = buildMealFromRawBlock('almoco', chunk);
+                return resultMeals;
+            }
+
+            positions.forEach((pos, idx) => {
+                const start = pos.index + pos.len;
+                const end = idx + 1 < positions.length ? positions[idx + 1].index : chunk.length;
+                const mealText = chunk.slice(start, end).trim();
+                resultMeals[pos.key] = buildMealFromRawBlock(pos.key, mealText);
+            });
+
+            return resultMeals;
+        }
+
+        /**
+         * Aplica as regras nutricionais automáticas (concha, escumadeira, pegador)
+         * em cima dos alimentos identificados no texto do RU
+         */
+        function buildMealFromRawBlock(mealType, rawBlock) {
+            const lines = rawBlock.split('\n').map(l => l.trim()).filter(Boolean);
+            const rawCategories = {};
+
+            lines.forEach(line => {
+                const colonIdx = line.indexOf(':');
+                if (colonIdx > 1 && colonIdx < 28) {
+                    const cat = line.slice(0, colonIdx).toLowerCase().trim();
+                    const val = line.slice(colonIdx + 1).trim();
+                    rawCategories[cat] = val;
+                } else {
+                    rawCategories[`item_${Object.keys(rawCategories).length + 1}`] = line;
+                }
+            });
+
+            const fullLower = rawBlock.toLowerCase();
+            const prescriptions = [];
+            const cutItems = [];
+
+            // Identificar alertas de alta caloria
+            const highCalRegex = /(lasanha|quiche|salsicha|estrogonofe|strogonoff|fritura|empanado|milanesa|feijoada|rabada|vatap[áa]|caruru)/gi;
+            const highCalMatches = [...new Set((fullLower.match(highCalRegex) || []).map(s => s.toLowerCase()))];
+
+            // Identificar cortes padrão
+            if (/suco|refresco/i.test(fullLower)) cutItems.push('Suco adoçado (beba água ou café)');
+            if (/doce|chocolate|bombom|pudim|mousse|arroz\s+doce|canjica/i.test(fullLower)) cutItems.push('Sobremesa doce (fique na fruta)');
+            if (/bebida\s+l[áa]ctea|achocolatado/i.test(fullLower)) cutItems.push('Bebida láctea');
+
+            if (mealType === 'desjejum') {
+                const fruta = findCategoryValue(rawCategories, ['fruta', 'sobremesa']) || 'Fruta da época';
+                const prot = findCategoryValue(rawCategories, ['prote[íi]na', 'principal', 'op[çc][ãa]o', 'complemento']) || extractProteinFromText(rawBlock) || 'Ovos mexidos / Carne / Queijo';
+                const carbo = findCategoryValue(rawCategories, ['carboidrato', 'acompanhamento', 'massa', 'raiz', 'p[ãa]o']) || extractCarboMorning(rawBlock) || 'Cuscuz ou 1 Pão francês';
+
+                prescriptions.push(
+                    { icon: '🍎', utensil: '1 unidade / fatia', item: fruta, rule: 'Coma a fruta inteira para fibras e saciedade.', status: 'good' },
+                    { icon: '🍳', utensil: '3 colheres sopa (ou 1 escumadeira)', item: prot, rule: 'Priorize ovos, frango ou carne moída. Evite salsicha.', status: /salsicha/i.test(prot) ? 'warn' : 'good' },
+                    { icon: '🌽', utensil: '1 fatia média (ou 1 pão sem manteiga)', item: carbo, rule: 'Escolha apenas 1 fonte de carboidrato.', status: 'good' },
+                    { icon: '☕', utensil: '1 copo', item: 'Café puro (ou com adoçante)', rule: 'Dispense suco, achocolatado e manteiga.', status: 'cut', cutText: cutItems.length ? `Cortar: ${cutItems.join(', ')}` : 'Cortar: Suco adoçado e Manteiga' }
+                );
+
+                return {
+                    title: 'Desjejum',
+                    time: '07:00 - 08:30',
+                    rawCategories,
+                    prescriptions,
+                    alternatives: []
+                };
+            }
+
+            if (mealType === 'almoco') {
+                const entrada = findCategoryValue(rawCategories, ['entrada', 'salada']) || 'Salada crua e legumes cozidos';
+                const principal = findCategoryValue(rawCategories, ['principal', 'prote[íi]na', 'carne']) || extractProteinFromText(rawBlock) || 'Proteína magra do dia';
+                const acomp = findCategoryValue(rawCategories, ['acompanhamento', 'guarni[çc][ãa]o']) || rawBlock;
+                const sobremesa = findCategoryValue(rawCategories, ['sobremesa', 'fruta']) || 'Fruta da época';
+
+                // Verificar legumes bons vs batata
+                const hasGoodVeggies = /(abobrinha|chuchu|ab[óo]bora|repolho|cenoura|vagem|beterraba|pepino|alface|tomate)/i.test(entrada + ' ' + acomp);
+                const hasPotatoSalad = /salada\s+de\s+batata|maionese/i.test(entrada);
+
+                prescriptions.push({
+                    icon: '🥗',
+                    utensil: '2 pegadores bem cheios',
+                    item: `Salada crua (${entrada.split('/')[0].trim()})`,
+                    rule: hasPotatoSalad ? 'Encha metade do prato com folhas/crua e pule a salada de batata.' : 'Base de volume do prato — quase zero calorias.',
+                    status: 'good'
+                });
+
+                if (hasGoodVeggies) {
+                    prescriptions.push({
+                        icon: '🥒',
+                        utensil: '1,5 escumadeira cheia',
+                        item: 'Legumes cozidos (abobrinha, chuchu, abóbora, repolho, cenoura)',
+                        rule: 'Pode caprichar nos legumes! Desvie apenas de batata inglesa em excesso.',
+                        status: 'good'
+                    });
+                }
+
+                const isPrincipalHighCal = highCalRegex.test(principal);
+                prescriptions.push({
+                    icon: '🍗',
+                    utensil: '1 escumadeira cheia (ou 1 pedaço grande)',
+                    item: principal,
+                    rule: isPrincipalHighCal
+                        ? `⚠️ Atenção: há opção calórica (${highCalMatches.join(', ')}). Prefira a carne/frango grelhado ou proteína vegetal!`
+                        : 'Proteína essencial para segurar a fome até o jantar.',
+                    status: isPrincipalHighCal ? 'warn' : 'good'
+                });
+
+                prescriptions.push({
+                    icon: '🫘',
+                    utensil: '1,5 concha',
+                    item: extractBeanType(acomp),
+                    rule: 'Puxe mais grãos do que caldo. Alta saciedade.',
+                    status: 'good'
+                });
+
+                const extraCarbs = [];
+                if (/espaguete|macarr[ãa]o/i.test(acomp)) extraCarbs.push('Espaguete');
+                if (/farofa/i.test(acomp)) extraCarbs.push('Farofa');
+                if (/pur[êe]/i.test(acomp)) extraCarbs.push('Purê');
+                if (/quibebe/i.test(acomp)) extraCarbs.push('Quibebe');
+
+                prescriptions.push({
+                    icon: '🍚',
+                    utensil: '1 escumadeira rasa',
+                    item: extractRiceType(acomp),
+                    rule: extraCarbs.length
+                        ? `Regra de ouro: coma só o arroz e passe direto por ${extraCarbs.join(' e ')}!`
+                        : 'Mantenha apenas 1 fonte de carboidrato no prato.',
+                    status: 'good'
+                });
+
+                const allCuts = [...extraCarbs, ...cutItems];
+                prescriptions.push({
+                    icon: '🍊',
+                    utensil: '1 unidade / fatia',
+                    item: `Sobremesa: ${sobremesa.split('/')[0].trim()} + Água`,
+                    rule: 'Fruta inteira em vez de suco líquido.',
+                    status: 'cut',
+                    cutText: allCuts.length ? `Cortar: ${allCuts.join(', ')}` : 'Cortar: Suco adoçado e acompanhamentos extras'
+                });
+
+                return {
+                    title: 'Almoço (O Pratão Estratégico)',
+                    time: '11:00 - 14:00',
+                    rawCategories,
+                    prescriptions,
+                    alternatives: []
+                };
+            }
+
+            // JANTAR
+            const entradaJantar = findCategoryValue(rawCategories, ['entrada', 'salada', 'sopa']) || 'Salada crua';
+            const principalJantar = findCategoryValue(rawCategories, ['principal', 'prote[íi]na', 'carne']) || extractProteinFromText(rawBlock) || 'Frango / Carne / Ovos';
+            const acompJantar = findCategoryValue(rawCategories, ['acompanhamento', 'guarni[çc][ãa]o', 'carboidrato']) || rawBlock;
+            const hasSoup = /(sopa|canja|caldo)/i.test(fullLower);
+
+            prescriptions.push({
+                icon: '🥗',
+                utensil: '2 pegadores bem cheios',
+                item: 'Salada crua variada',
+                rule: 'Comece pela salada para ocupar espaço no estômago.',
+                status: 'good'
+            });
+
+            const isJantarHighCal = highCalRegex.test(principalJantar);
+            prescriptions.push({
+                icon: '🥩',
+                utensil: '1 escumadeira cheia (ou 1 pedaço grande)',
+                item: principalJantar,
+                rule: isJantarHighCal
+                    ? `⚠️ Modere se escolher ${highCalMatches.join(', ')}; dê preferência à carne ou frango grelhado/acebolado.`
+                    : 'Mantém a massa magra e evita fome noturna.',
+                status: isJantarHighCal ? 'warn' : 'good'
+            });
+
+            const nightCarbo = extractNightCarbo(acompJantar);
+            prescriptions.push({
+                icon: '🍠',
+                utensil: nightCarbo.utensil,
+                item: nightCarbo.item,
+                rule: 'À noite reduza o carboidrato e corte totalmente o pão francês de complemento.',
+                status: 'good'
+            });
+
+            const jantarCuts = ['Pão francês do jantar', ...cutItems];
+            if (/espaguete|macarr[ãa]o/i.test(acompJantar)) jantarCuts.push('Espaguete');
+
+            prescriptions.push({
+                icon: '☕',
+                utensil: '1 copo',
+                item: 'Café puro ou Água',
+                rule: 'Sem pão e sem suco adoçado antes de dormir.',
+                status: 'cut',
+                cutText: `Cortar: ${[...new Set(jantarCuts)].join(', ')}`
+            });
+
+            const alternatives = [];
+            if (hasSoup) {
+                const soupMatch = rawBlock.match(/((?:sopa|canja)[^\n,/]*)/i);
+                const soupName = soupMatch ? soupMatch[1].trim() : 'Sopa / Canja do dia';
+                alternatives.push({
+                    label: 'Alternativa Leve (Sopa/Canja)',
+                    items: [
+                        { icon: '🥗', utensil: '2 pegadores cheios', item: 'Salada crua', rule: 'Mastigação e volume antes da sopa.', status: 'good' },
+                        { icon: '🍲', utensil: '2 conchas cheias', item: soupName, rule: 'Substitui a raiz/arroz e o pão. Não misture os dois.', status: 'good' },
+                        { icon: '🍗', utensil: '1 porção', item: principalJantar.split('/')[0].trim(), rule: 'Reforço proteico se a sopa tiver pouca carne.', status: 'good' }
+                    ]
+                });
+            }
+
+            return {
+                title: 'Jantar (Volume com Menos Carboidrato)',
+                time: '17:00 - 19:30',
+                rawCategories,
+                prescriptions,
+                alternatives
+            };
+        }
+
+        // Helpers de extração de texto do RU
+        function findCategoryValue(catObj, keysRegexList) {
+            for (const [k, v] of Object.entries(catObj)) {
+                for (const r of keysRegexList) {
+                    if (new RegExp(r, 'i').test(k)) return v;
+                }
+            }
+            return null;
+        }
+
+        function extractProteinFromText(txt) {
+            const m = txt.match(/([^\n:]*(?:frango|carne|lombo|bife|peixe|ovo|omelete|soja|lentilha|gr[ãa]o-de-bico|calabresa|hamb[úu]rguer|quiche|lasanha)[^\n]*)/i);
+            return m ? m[1].trim() : null;
+        }
+
+        function extractCarboMorning(txt) {
+            const m = txt.match(/([^\n:]*(?:cuscuz|macaxeira|car[áa]|inhame|batata\s*doce|p[ãa]o)[^\n]*)/i);
+            return m ? m[1].trim() : null;
+        }
+
+        function extractBeanType(txt) {
+            const m = txt.match(/(feij[ãa]o\s+(?:mulatinho|macassar|preto|carioca|verde|fradinho)[^\n,/]*)/i);
+            return m ? capitalize(m[1].trim()) : 'Feijão do dia';
+        }
+
+        function extractRiceType(txt) {
+            const m = txt.match(/(arroz\s+(?:branco|colorido|com\s+cenoura|refogado|carioca|integral|a\s+grega)[^\n,/]*)/i);
+            return m ? capitalize(m[1].trim()) : 'Arroz do dia';
+        }
+
+        function extractNightCarbo(txt) {
+            const rootMatch = txt.match(/(macaxeira|batata[\s-]*doce|car[áa]|inhame|cuscuz)[^\n,/]*/i);
+            if (rootMatch) {
+                const name = capitalize(rootMatch[0].trim());
+                const isCuscuz = /cuscuz/i.test(name);
+                return {
+                    utensil: isCuscuz ? '1 fatia média' : '1 pedaço médio (tamanho do punho)',
+                    item: name
+                };
+            }
+            return {
+                utensil: '½ escumadeira',
+                item: extractRiceType(txt)
+            };
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        /**
+         * BUSCA AUTOMÁTICA VIA PROXY CORS PÚBLICO
+         */
+        async function fetchRUMenuAuto() {
+            const btn = document.getElementById('btn-auto-fetch');
+            const statusBox = document.getElementById('fetch-status-box');
+            const targetUrl = 'https://ru.ufpe.br/recife/cardapio/';
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="animate-spin">⏳</span><span>Buscando...</span>';
+            statusBox.className = 'mt-2.5 text-xs p-2.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-200 block';
+            statusBox.textContent = 'Conectando ao servidor do RU UFPE via proxy seguro...';
+
+            const proxies = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+            ];
+
+            let htmlContent = null;
+
+            for (const proxyUrl of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
+                    const res = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (!res.ok) continue;
+
+                    if (proxyUrl.includes('allorigins')) {
+                        const data = await res.json();
+                        if (data && data.contents) htmlContent = data.contents;
+                    } else {
+                        htmlContent = await res.text();
+                    }
+
+                    if (htmlContent && htmlContent.length > 500) break;
+                } catch (err) {
+                    console.warn('Falha no proxy:', proxyUrl, err);
+                }
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<span>🌐</span><span>Tentar Buscar Automaticamente</span>';
+
+            if (!htmlContent) {
+                statusBox.className = 'mt-2.5 text-xs p-3 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 block';
+                statusBox.innerHTML = '<strong>Bloqueio de CORS/Firewall no site da UFPE:</strong> O navegador não conseguiu ler diretamente. Sem problemas: clique em <strong>"Abrir site do RU ↗"</strong> logo abaixo, copie o texto da semana e cole na caixa!';
+                return;
+            }
+
+            // Extrair texto limpo do HTML retornado
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const mainArea = doc.querySelector('main, article, .entry-content, #content') || doc.body;
+            const extractedText = mainArea.innerText || mainArea.textContent || '';
+
+            document.getElementById('raw-menu-input').value = extractedText.trim();
+            const parsed = parseRUMenuText(extractedText);
+
+            if (parsed && parsed.days.length > 0) {
+                appState.weekMenu = parsed.days;
+                appState.weekTitle = parsed.weekTitle;
+                appState.selectedDayIndex = 0;
+                appState.completedMeals = {};
+                appState.selectedAlternatives = {};
+                saveState();
+                renderAll();
+                statusBox.className = 'mt-2.5 text-xs p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+                statusBox.textContent = `Sucesso! Cardápio importado (${parsed.days.length} dias identificados).`;
+                showToast('Cardápio do RU atualizado com sucesso!', '🎉');
+                setTimeout(() => toggleModal('import-modal'), 900);
+            } else {
+                statusBox.className = 'mt-2.5 text-xs p-2.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 block';
+                statusBox.textContent = 'A página foi carregada, mas o formato mudou. Copie e cole o texto do cardápio na caixa abaixo.';
+            }
+        }
+
+        function processPastedMenu() {
+            const rawInput = document.getElementById('raw-menu-input').value.trim();
+            if (!rawInput) {
+                showToast('Cole o texto do cardápio primeiro!', '⚠️');
+                return;
+            }
+
+            const parsed = parseRUMenuText(rawInput);
+            if (!parsed || parsed.days.length === 0) {
+                showToast('Não encontrei os dias da semana (Segunda a Sexta) no texto colado.', '⚠️');
+                return;
+            }
+
+            appState.weekMenu = parsed.days;
+            appState.weekTitle = parsed.weekTitle;
+            appState.selectedDayIndex = 0;
+            appState.completedMeals = {};
+            appState.selectedAlternatives = {};
+            saveState();
+            renderAll();
+            toggleModal('import-modal');
+            showToast(`Dieta semanal gerada para ${parsed.days.length} dias!`, '✨');
+        }
+
+        function loadDefaultWeekMenu() {
+            appState.weekMenu = getInitialWeekMenu();
+            appState.weekTitle = 'Semana de 16/11 a 20/11/2026';
+            appState.selectedDayIndex = 0;
+            appState.completedMeals = {};
+            appState.selectedAlternatives = {};
+            saveState();
+            renderAll();
+            toggleModal('import-modal');
+            showToast('Cardápio padrão (16/11 a 20/11) restaurado!', '🔄');
+        }
+
+        /**
+         * RENDERIZAÇÃO DA INTERFACE
+         */
+        function renderAll() {
+            renderStats();
+            renderDayTabs();
+            renderSelectedDayMeals();
+        }
+
+        function renderStats() {
+            const { startWeight, currentWeight, targetWeight, height } = appState.profile;
+            const remaining = Math.max(0, currentWeight - targetWeight);
+            const lost = startWeight - currentWeight;
+            const bmi = currentWeight / (height * height);
+
+            document.getElementById('stat-current-weight').textContent = currentWeight.toFixed(1);
+            document.getElementById('stat-remaining').textContent = remaining.toFixed(1);
+            document.getElementById('stat-bmi').textContent = bmi.toFixed(1);
+
+            const lostLabel = document.getElementById('stat-lost-label');
+            if (lost > 0) {
+                lostLabel.textContent = `-${lost.toFixed(1)} kg eliminados`;
+                lostLabel.className = 'text-[11px] text-emerald-600 font-bold mt-0.5';
+            } else if (lost < 0) {
+                lostLabel.textContent = `+${Math.abs(lost).toFixed(1)} kg do início`;
+                lostLabel.className = 'text-[11px] text-rose-600 font-semibold mt-0.5';
+            } else {
+                lostLabel.textContent = `Início: ${startWeight.toFixed(1)} kg`;
+                lostLabel.className = 'text-[11px] text-slate-500 font-medium mt-0.5';
+            }
+
+            // Barra de progresso 92 -> 75
+            const totalToLose = startWeight - targetWeight;
+            const pct = totalToLose > 0 ? Math.min(100, Math.max(0, ((startWeight - currentWeight) / totalToLose) * 100)) : 0;
+            document.getElementById('weight-progress-pct').textContent = `${pct.toFixed(0)}% concluído`;
+            document.getElementById('weight-progress-bar').style.width = `${Math.max(2, pct)}%`;
+
+            // Aderência semanal (refeições marcadas)
+            let totalMeals = 0;
+            let checkedMeals = 0;
+            appState.weekMenu.forEach(day => {
+                Object.keys(day.meals).forEach(mealKey => {
+                    totalMeals++;
+                    if (appState.completedMeals[`${day.id}-${mealKey}`]) {
+                        checkedMeals++;
+                    }
+                });
+            });
+
+            const adherencePct = totalMeals > 0 ? Math.round((checkedMeals / totalMeals) * 100) : 0;
+            document.getElementById('stat-adherence').textContent = `${adherencePct}%`;
+            document.getElementById('stat-meals-count').textContent = `${checkedMeals}/${totalMeals} refeições`;
+
+            // Passos
+            document.getElementById('steps-display').textContent = appState.steps.count.toLocaleString('pt-BR');
+
+            // Subtítulo da semana
+            document.getElementById('menu-week-subtitle').textContent = `${appState.weekTitle} • Campus Recife`;
+        }
+
+        function renderDayTabs() {
+            const container = document.getElementById('day-tabs-container');
+            container.innerHTML = '';
+
+            appState.weekMenu.forEach((day, idx) => {
+                const isSelected = idx === appState.selectedDayIndex;
+                const mealKeys = Object.keys(day.meals);
+                const doneCount = mealKeys.filter(k => appState.completedMeals[`${day.id}-${k}`]).length;
+                const allDone = mealKeys.length > 0 && doneCount === mealKeys.length;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => {
+                    appState.selectedDayIndex = idx;
+                    saveState();
+                    renderDayTabs();
+                    renderSelectedDayMeals();
+                };
+
+                btn.className = isSelected
+                    ? 'flex-1 min-w-[74px] py-2.5 px-3 rounded-2xl bg-ufpe-red text-white font-bold text-xs shadow-sm transition flex flex-col items-center justify-center border border-ufpe-red'
+                    : 'flex-1 min-w-[74px] py-2.5 px-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 transition flex flex-col items-center justify-center';
+
+                btn.innerHTML = `
+                    <span class="text-sm font-extrabold">${day.shortName}</span>
+                    <span class="text-[10px] mt-0.5 ${isSelected ? 'text-rose-100' : 'text-slate-400'}">
+                        ${day.isHoliday ? 'Feriado' : (allDone ? '✅ Concluído' : `${doneCount}/${mealKeys.length} ok`)}
+                    </span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function renderSelectedDayMeals() {
+            const container = document.getElementById('day-meals-container');
+            const day = appState.weekMenu[appState.selectedDayIndex];
+            if (!day) return;
+
+            let html = `
+                <div class="flex items-center justify-between bg-slate-100/80 px-4 py-2.5 rounded-2xl border border-slate-200/70">
+                    <span class="font-extrabold text-sm text-slate-800">${day.fullName}</span>
+                    <span class="text-[11px] font-semibold text-slate-500">${day.isHoliday ? '🏠 Protocolo Caseiro' : '🏛️ Bandejão RU'}</span>
+                </div>
+            `;
+
+            if (day.isHoliday && day.holidayReason) {
+                html += `
+                    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-start gap-3">
+                        <span class="text-xl">📅</span>
+                        <div>
+                            <p class="text-xs font-bold text-amber-950">Aviso de Funcionamento</p>
+                            <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">${day.holidayReason}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            Object.entries(day.meals).forEach(([mealKey, meal]) => {
+                const checkId = `${day.id}-${mealKey}`;
+                const isChecked = !!appState.completedMeals[checkId];
+                const activeAltIdx = appState.selectedAlternatives[checkId] || 0; // 0 = principal, >0 = alternativa
+
+                const activePrescriptions = activeAltIdx === 0
+                    ? meal.prescriptions
+                    : (meal.alternatives[activeAltIdx - 1]?.items || meal.prescriptions);
+
+                html += `
+                    <article class="bg-white rounded-3xl border ${isChecked ? 'border-emerald-300 bg-emerald-50/10' : 'border-slate-200/90'} shadow-sm overflow-hidden transition">
+                        <!-- Header do Card da Refeição -->
+                        <div class="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/60">
+                            <div class="flex items-center gap-3">
+                                <label class="relative flex items-center cursor-pointer">
+                                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleMealCheck('${checkId}')" class="w-6 h-6 rounded-lg accent-emerald-600 cursor-pointer">
+                                </label>
+                                <div>
+                                    <h3 class="font-extrabold text-sm sm:text-base text-slate-900 ${isChecked ? 'line-through text-slate-400' : ''}">${meal.title}</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">Horário RU: ${meal.time}</p>
+                                </div>
+                            </div>
+                            <button onclick="openEditMealModal('${day.id}', '${mealKey}')" class="text-xs font-semibold text-slate-600 hover:text-ufpe-red bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl transition">
+                                ✏️ Editar
+                            </button>
+                        </div>
+
+                        <!-- Seletor de Alternativa (se houver sopa/canja/vegetariano) -->
+                        ${meal.alternatives && meal.alternatives.length > 0 ? `
+                            <div class="px-4 pt-3 flex flex-wrap gap-1.5">
+                                <button onclick="selectMealAlternative('${checkId}', 0)" class="text-xs font-bold px-3 py-1.5 rounded-xl transition ${activeAltIdx === 0 ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                                    🍽️ Prato Principal
+                                </button>
+                                ${meal.alternatives.map((alt, i) => `
+                                    <button onclick="selectMealAlternative('${checkId}', ${i + 1})" class="text-xs font-bold px-3 py-1.5 rounded-xl transition ${activeAltIdx === i + 1 ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                                        🔄 ${alt.label}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <!-- Lista de Itens e Utensílios -->
+                        <div class="p-4 space-y-2.5">
+                            ${activePrescriptions.map(p => {
+                                if (p.status === 'cut') {
+                                    return `
+                                        <div class="p-3 rounded-2xl bg-rose-50/70 border border-rose-200/70 flex items-start gap-2.5">
+                                            <span class="text-lg shrink-0">${p.icon}</span>
+                                            <div class="flex-1">
+                                                <div class="flex flex-wrap items-center justify-between gap-1">
+                                                    <span class="text-xs font-bold text-slate-800">${p.item}</span>
+                                                    <span class="text-[11px] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-lg">${p.utensil}</span>
+                                                </div>
+                                                <p class="text-[11px] font-bold text-rose-700 mt-1">🚫 ${p.cutText || p.rule}</p>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                                const badgeClass = p.status === 'warn'
+                                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                    : 'bg-emerald-100 text-emerald-900';
+                                return `
+                                    <div class="p-3 rounded-2xl bg-slate-50/90 border border-slate-100 flex items-start gap-2.5">
+                                        <span class="text-lg shrink-0">${p.icon}</span>
+                                        <div class="flex-1">
+                                            <div class="flex flex-wrap items-center justify-between gap-1">
+                                                <span class="text-xs sm:text-sm font-bold text-slate-900">${p.item}</span>
+                                                <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg ${badgeClass}">🥄 ${p.utensil}</span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">${p.rule}</p>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <!-- Acordeão discreto com o cardápio bruto original do RU -->
+                        ${meal.rawCategories && Object.keys(meal.rawCategories).length > 0 ? `
+                            <details class="px-4 pb-3.5 text-xs text-slate-500">
+                                <summary class="cursor-pointer font-semibold text-slate-400 hover:text-slate-600 select-none">Ver itens originais do cardápio do RU</summary>
+                                <div class="mt-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1 text-[11px]">
+                                    ${Object.entries(meal.rawCategories).map(([k, v]) => `
+                                        <p><strong class="capitalize text-slate-700">${k.replace(/_/g, ' ')}:</strong> ${v}</p>
+                                    `).join('')}
+                                </div>
+                            </details>
+                        ` : ''}
+                    </article>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        /**
+         * INTERAÇÕES DE CHECKBOX, ALTERNATIVAS, PASSOS E EDIÇÃO MANUAL
+         */
+        function toggleMealCheck(checkId) {
+            appState.completedMeals[checkId] = !appState.completedMeals[checkId];
+            saveState();
+            renderStats();
+            renderDayTabs();
+            renderSelectedDayMeals();
+            if (appState.completedMeals[checkId]) {
+                showToast('Refeição concluída dentro do plano!', '✅');
+            }
+        }
+
+        function selectMealAlternative(checkId, altIndex) {
+            appState.selectedAlternatives[checkId] = altIndex;
+            saveState();
+            renderSelectedDayMeals();
+        }
+
+        function addSteps(amount) {
+            appState.steps.count += amount;
+            saveState();
+            renderStats();
+            if (appState.steps.count >= 7000) {
+                showToast('Meta diária de 7.000 passos batida!', '🔥');
+            } else {
+                showToast(`+${amount.toLocaleString('pt-BR')} passos adicionados!`, '👟');
+            }
+        }
+
+        function resetSteps() {
+            appState.steps.count = 0;
+            saveState();
+            renderStats();
+            showToast('Contador de passos zerado.', '↺');
+        }
+
+        function toggleGuideDetails() {
+            const content = document.getElementById('visual-guide-content');
+            const btn = document.getElementById('btn-toggle-guide');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                btn.textContent = 'Ocultar Guia';
+            } else {
+                content.classList.add('hidden');
+                btn.textContent = 'Mostrar Guia';
+            }
+        }
+
+        function openEditMealModal(dayId, mealKey) {
+            const day = appState.weekMenu.find(d => d.id === dayId);
+            if (!day || !day.meals[mealKey]) return;
+            const meal = day.meals[mealKey];
+
+            currentEditingContext = { dayId, mealKey };
+            document.getElementById('edit-modal-title').textContent = `Editar: ${day.shortName} — ${meal.title}`;
+
+            const body = document.getElementById('edit-modal-body');
+            body.innerHTML = meal.prescriptions.map((p, idx) => `
+                <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold text-slate-500">Alimento</label>
+                            <input type="text" id="edit-item-${idx}" value="${p.item.replace(/"/g, '&quot;')}" class="w-full rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs font-bold">
+                        </div>
+                        <div class="w-36">
+                            <label class="block text-[10px] font-bold text-slate-500">Medida RU</label>
+                            <input type="text" id="edit-utensil-${idx}" value="${p.utensil.replace(/"/g, '&quot;')}" class="w-full rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs font-semibold">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500">Orientação</label>
+                        <input type="text" id="edit-rule-${idx}" value="${(p.cutText || p.rule).replace(/"/g, '&quot;')}" class="w-full rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs">
+                    </div>
+                </div>
+            `).join('');
+
+            toggleModal('edit-meal-modal');
+        }
+
+        function saveEditedMeal() {
+            if (!currentEditingContext) return;
+            const { dayId, mealKey } = currentEditingContext;
+            const day = appState.weekMenu.find(d => d.id === dayId);
+            const meal = day.meals[mealKey];
+
+            meal.prescriptions.forEach((p, idx) => {
+                const newItem = document.getElementById(`edit-item-${idx}`).value.trim();
+                const newUtensil = document.getElementById(`edit-utensil-${idx}`).value.trim();
+                const newRule = document.getElementById(`edit-rule-${idx}`).value.trim();
+
+                if (newItem) p.item = newItem;
+                if (newUtensil) p.utensil = newUtensil;
+                if (newRule) {
+                    if (p.status === 'cut') p.cutText = newRule;
+                    else p.rule = newRule;
+                }
+            });
+
+            saveState();
+            renderSelectedDayMeals();
+            toggleModal('edit-meal-modal');
+            showToast('Refeição personalizada salva!', '💾');
+        }
+
+        /**
+         * GESTÃO DE PESO E GRÁFICO SVG
+         */
+        function openWeightModalSetup() {
+            document.getElementById('input-new-weight').value = appState.profile.currentWeight.toFixed(1);
+            document.getElementById('input-weight-date').value = new Date().toISOString().split('T')[0];
+            renderWeightChartAndHistory();
+        }
+
+        function saveWeightEntry() {
+            const val = parseFloat(document.getElementById('input-new-weight').value);
+            const dateVal = document.getElementById('input-weight-date').value || new Date().toISOString().split('T')[0];
+
+            if (isNaN(val) || val < 45 || val > 220) {
+                showToast('Informe um peso válido entre 45 kg e 220 kg.', '⚠️');
+                return;
+            }
+
+            appState.profile.currentWeight = val;
+            const existingIdx = appState.weightHistory.findIndex(e => e.date === dateVal);
+            if (existingIdx >= 0) {
+                appState.weightHistory[existingIdx].weight = val;
+            } else {
+                appState.weightHistory.push({ date: dateVal, weight: val });
+            }
+
+            appState.weightHistory.sort((a, b) => a.date.localeCompare(b.date));
+            saveState();
+            renderStats();
+            renderWeightChartAndHistory();
+            showToast(`Peso atualizado para ${val.toFixed(1)} kg!`, '⚖️');
+        }
+
+        function deleteWeightEntry(idx) {
+            if (appState.weightHistory.length <= 1) {
+                showToast('Mantenha pelo menos o registro inicial.', 'ℹ️');
+                return;
+            }
+            appState.weightHistory.splice(idx, 1);
+            const last = appState.weightHistory[appState.weightHistory.length - 1];
+            appState.profile.currentWeight = last.weight;
+            saveState();
+            renderStats();
+            renderWeightChartAndHistory();
+        }
+
+        function renderWeightChartAndHistory() {
+            const chartContainer = document.getElementById('weight-chart-container');
+            const historyList = document.getElementById('weight-history-list');
+            const entries = appState.weightHistory;
+
+            // Renderizar Histórico
+            historyList.innerHTML = [...entries].reverse().map((entry, revIdx) => {
+                const origIdx = entries.length - 1 - revIdx;
+                const formattedDate = entry.date.split('-').reverse().join('/');
+                return `
+                    <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 text-xs">
+                        <span class="font-medium text-slate-600">📅 ${formattedDate}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="font-extrabold text-slate-900">${entry.weight.toFixed(1)} kg</span>
+                            ${entries.length > 1 ? `<button onclick="deleteWeightEntry(${origIdx})" class="text-rose-500 hover:text-rose-700 font-bold">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Renderizar Gráfico SVG
+            const width = 420;
+            const height = 160;
+            const padLeft = 36;
+            const padRight = 20;
+            const padTop = 20;
+            const padBottom = 26;
+
+            const allWeights = entries.map(e => e.weight).concat([75]);
+            const maxW = Math.ceil(Math.max(...allWeights) + 1);
+            const minW = Math.floor(Math.min(...allWeights) - 1);
+            const rangeW = Math.max(1, maxW - minW);
+
+            const getY = (w) => padTop + ((maxW - w) / rangeW) * (height - padTop - padBottom);
+            const getX = (i) => {
+                if (entries.length === 1) return (width + padLeft - padRight) / 2;
+                return padLeft + (i / (entries.length - 1)) * (width - padLeft - padRight);
+            };
+
+            const metaY = getY(75);
+            const points = entries.map((e, i) => `${getX(i)},${getY(e.weight)}`).join(' ');
+
+            chartContainer.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
+                    <!-- Linha da Meta (75 kg) -->
+                    <line x1="${padLeft}" y1="${metaY}" x2="${width - padRight}" y2="${metaY}" stroke="#10B981" stroke-width="1.5" stroke-dasharray="4 4"/>
+                    <text x="${padLeft - 4}" y="${metaY + 3}" text-anchor="end" fill="#059669" font-size="9" font-weight="700">75kg</text>
+
+                    <!-- Linha Superior (Início) -->
+                    <line x1="${padLeft}" y1="${getY(92)}" x2="${width - padRight}" y2="${getY(92)}" stroke="#E2E8F0" stroke-width="1"/>
+                    <text x="${padLeft - 4}" y="${getY(92) + 3}" text-anchor="end" fill="#64748B" font-size="9" font-weight="600">92kg</text>
+
+                    <!-- Curva de Evolução -->
+                    ${entries.length > 1 ? `<polyline fill="none" stroke="#9E1B32" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${points}"/>` : ''}
+
+                    <!-- Pontos -->
+                    ${entries.map((e, i) => {
+                        const cx = getX(i);
+                        const cy = getY(e.weight);
+                        const shortDate = e.date.slice(5).split('-').reverse().join('/');
+                        return `
+                            <circle cx="${cx}" cy="${cy}" r="4.5" fill="#9E1B32" stroke="#FFFFFF" stroke-width="2"/>
+                            <text x="${cx}" y="${cy - 8}" text-anchor="middle" fill="#0F172A" font-size="9.5" font-weight="800">${e.weight.toFixed(1)}</text>
+                            <text x="${cx}" y="${height - 6}" text-anchor="middle" fill="#64748B" font-size="8.5">${shortDate}</text>
+                        `;
+                    }).join('')}
+                </svg>
+            `;
+        }
+
+        /**
+         * EXPORTAR RESUMO DO DIA PARA WHATSAPP (Via document.execCommand('copy'))
+         */
+        function copyWhatsAppSummary() {
+            const day = appState.weekMenu[appState.selectedDayIndex];
+            if (!day) return;
+
+            let text = `*🍽️ DIETA RU UFPE — ${day.fullName}*\n`;
+            text += `🎯 Meta: ${appState.profile.currentWeight.toFixed(1)}kg ➔ 75.0kg\n\n`;
+
+            Object.values(day.meals).forEach(meal => {
+                text += `*${meal.title}*\n`;
+                meal.prescriptions.forEach(p => {
+                    if (p.status === 'cut') {
+                        text += `🚫 ${p.cutText || p.rule}\n`;
+                    } else {
+                        text += `• ${p.item}: *${p.utensil}*\n`;
+                    }
+                });
+                text += `\n`;
+            });
+
+            text += `👟 Meta de hoje: ${appState.steps.count.toLocaleString('pt-BR')} / 7.000 passos`;
+
+            const tempArea = document.createElement('textarea');
+            tempArea.value = text;
+            tempArea.style.position = 'fixed';
+            tempArea.style.opacity = '0';
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Resumo do dia copiado! Cole no WhatsApp.', '📲');
+            } catch (err) {
+                showToast('Não foi possível copiar automaticamente.', '⚠️');
+            }
+            document.body.removeChild(tempArea);
+        }
+
+        /**
+         * CONTROLE DE MODAIS E NOTIFICAÇÃO TOAST
+         */
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            const isHidden = modal.classList.contains('hidden');
+            if (isHidden) {
+                modal.classList.remove('hidden');
+                if (modalId === 'weight-modal') openWeightModalSetup();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        let toastTimeout = null;
+        function showToast(msg, icon = '✅') {
+            const container = document.getElementById('toast-container');
+            document.getElementById('toast-message').textContent = msg;
+            document.getElementById('toast-icon').textContent = icon;
+
+            container.classList.remove('opacity-0', 'translate-y-4');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                container.classList.add('opacity-0', 'translate-y-4');
+            }, 3000);
+        }
+
+        // Inicialização
+        window.addEventListener('DOMContentLoaded', () => {
+            // Selecionar automaticamente o dia da semana atual (Seg=0 ... Sex=4) se estiver dentro da semana útil
+            const jsDay = new Date().getDay(); // 0=Dom, 1=Seg ... 5=Sex, 6=Sab
+            if (jsDay >= 1 && jsDay <= 5 && appState.weekMenu[jsDay - 1]) {
+                appState.selectedDayIndex = jsDay - 1;
+            }
+            renderAll();
+        });
+    </script>
+</body>
+</html>
