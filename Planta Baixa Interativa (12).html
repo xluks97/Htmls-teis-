@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planta Baixa Interativa</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col overflow-hidden">
+
+    <!-- Header Superior -->
+    <header class="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0 z-20 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleSidebar()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition" title="Alternar Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shadow-md">
+                    <i class="fa-solid fa-compass-drafting text-sm"></i>
+                </div>
+                <h1 class="font-bold text-sm md:text-base tracking-tight hidden sm:block">Planta Baixa CAD</h1>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button onclick="exportarImagemRelatorio()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition flex items-center space-x-1.5 active:scale-95">
+                <i class="fa-solid fa-file-image"></i>
+                <span class="hidden sm:inline">Exportar PNG</span>
+            </button>
+            <button onclick="salvarProjeto()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow transition flex items-center space-x-1.5 active:scale-95">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span class="hidden sm:inline">Salvar Projeto</span>
+            </button>
+            <label class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition flex items-center space-x-1.5 text-slate-700 dark:text-slate-200 active:scale-95">
+                <i class="fa-solid fa-folder-open"></i>
+                <span class="hidden sm:inline">Abrir</span>
+                <input type="file" accept=".json" onchange="carregarProjeto(event)" class="hidden">
+            </label>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+                <i id="iconeTema" class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Container Principal Layout Flex -->
+    <main class="flex-1 flex relative overflow-hidden">
+        
+        <!-- Backdrop para dispositivos móveis quando o menu estiver aberto -->
+        <div id="sidebarBackdrop" onclick="toggleSidebar()" class="absolute inset-0 bg-black/40 z-20 md:hidden hidden backdrop-blur-xs"></div>
+
+        <!-- Barra Lateral / Painel de Ferramentas -->
+        <aside id="sidebar" class="absolute md:relative z-30 w-80 h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300 shadow-xl md:shadow-none shrink-0">
+            
+            <!-- Abas do Painel -->
+            <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shrink-0">
+                <button id="aba-btn-ambiente" onclick="mudarAba('ambiente')" class="flex-1 py-3 text-[10px] md:text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 transition flex items-center justify-center space-x-1">
+                    <i class="fa-solid fa-house"></i> <span>Sala</span>
+                </button>
+                <button id="aba-btn-aberturas" onclick="mudarAba('aberturas')" class="flex-1 py-3 text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-700 transition flex items-center justify-center space-x-1 border-b-2 border-transparent">
+                    <i class="fa-solid fa-door-open"></i> <span>Aberturas</span>
+                </button>
+                <button id="aba-btn-itens" onclick="mudarAba('itens')" class="flex-1 py-3 text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-700 transition flex items-center justify-center space-x-1 border-b-2 border-transparent">
+                    <i class="fa-solid fa-couch"></i> <span>Itens</span>
+                </button>
+            </div>
+
+            <!-- Conteúdo das Abas -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                
+                <!-- AMBIENTE -->
+                <div id="aba-conteudo-ambiente" class="space-y-4">
+                    <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-xl space-y-3">
+                        <h3 class="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">Configurações do Ambiente</h3>
+
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Nome da Sala</label>
+                            <input type="text" id="nomeAmbiente" oninput="atualizarEstado()" value="Sala Principal" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Qtd. Pessoas</label>
+                                <input type="number" id="qtdOcupantes" oninput="atualizarEstado()" value="0" min="0" max="500" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Pé Direito (m)</label>
+                                <input type="number" id="peDireito" oninput="atualizarEstado()" value="2.8" min="1" max="20" step="0.1" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Formato do Ambiente</label>
+                            <select id="tipoForma" onchange="alterarTipoForma(this.value)" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="retangulo">Retangular (Padrão)</option>
+                                <option value="poligono">Personalizado / Mão Livre</option>
+                            </select>
+                        </div>
+
+                        <!-- Painel Retangular -->
+                        <div id="painelRetangulo" class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Largura (m)</label>
+                                    <input type="number" id="larguraSala" oninput="atualizarEstado()" value="5.0" min="1" max="50" step="0.1" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Comprimento (m)</label>
+                                    <input type="number" id="alturaSala" oninput="atualizarEstado()" value="4.0" min="1" max="50" step="0.1" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-1 pt-1">
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400">Tipo das Paredes</label>
+                                <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+                                    <label class="flex items-center space-x-1"><input type="checkbox" id="retParede0" checked onchange="atualizarEstado()" class="rounded text-blue-600"> <span>P1 Superior (Ext)</span></label>
+                                    <label class="flex items-center space-x-1"><input type="checkbox" id="retParede1" checked onchange="atualizarEstado()" class="rounded text-blue-600"> <span>P2 Direita (Ext)</span></label>
+                                    <label class="flex items-center space-x-1"><input type="checkbox" id="retParede2" checked onchange="atualizarEstado()" class="rounded text-blue-600"> <span>P3 Inferior (Ext)</span></label>
+                                    <label class="flex items-center space-x-1"><input type="checkbox" id="retParede3" checked onchange="atualizarEstado()" class="rounded text-blue-600"> <span>P4 Esquerda (Ext)</span></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Painel Polígono / Personalizado -->
+                        <div id="painelPoligono" class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700 hidden">
+                            <div class="flex items-center space-x-2">
+                                <button id="btnModoDesenho" onclick="alternarModoDesenhoParedes()" class="flex-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-2 rounded-lg transition flex items-center justify-center space-x-1 shadow-sm">
+                                    <i class="fa-solid fa-pen-ruler"></i> <span id="txtBtnDesenhar">Desenhar na Tela</span>
+                                </button>
+                                <button onclick="limparDesenhoPoligono()" class="bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-900 p-2 rounded-lg text-xs transition" title="Reiniciar Desenho">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-400 italic">No modo personalizado, toque ou clique e arraste para desenhar cada parede da sala.</p>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Paredes Personalizadas se Polígono -->
+                    <div id="containerListaParedes" class="space-y-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wide text-slate-400">Paredes do Ambiente</h4>
+                        <div id="listaParedesContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+                <!-- ABERTURAS (Portas e Janelas) -->
+                <div id="aba-conteudo-aberturas" class="space-y-4 hidden">
+                    <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-xl space-y-2.5">
+                        <h3 class="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">Nova Porta ou Janela</h3>
+
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Tipo</label>
+                            <select id="tipoAbertura" onchange="ajustarPadraoAbertura(this.value)" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="porta">Porta</option>
+                                <option value="janela">Janela</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Largura (m)</label>
+                                <input type="number" id="larguraAbertura" value="0.8" min="0.3" max="10" step="0.1" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Altura (m)</label>
+                                <input type="number" id="alturaAbertura" value="2.1" min="0.3" max="5" step="0.1" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <button onclick="adicionarAbertura()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg text-xs shadow transition active:scale-95 flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-plus"></i> <span>Adicionar Abertura</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h4 class="text-xs font-bold uppercase tracking-wide text-slate-400">Lista de Aberturas</h4>
+                        <div id="listaAberturasContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+                <!-- ITENS / EQUIPAMENTOS -->
+                <div id="aba-conteudo-itens" class="space-y-4 hidden">
+                    <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 p-3 rounded-xl space-y-2.5">
+                        <h3 class="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300">Novo Equipamento / Mobília</h3>
+
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Nome do Item</label>
+                            <input type="text" id="nomeItem" placeholder="Ex: Projetor, Mesa" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Categoria</label>
+                                <select id="tipoItem" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <option value="lampada">Lâmpada</option>
+                                    <option value="tomada">Tomada</option>
+                                    <option value="equipamento">Equip. Eletrônico</option>
+                                    <option value="ar-condicionado">Ar-condicionado</option>
+                                    <option value="mobilia">Mobiliário</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Quantidade</label>
+                                <input type="number" id="qtdItem" value="1" min="1" max="99" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Informações Adicionais (Opcional)</label>
+                            <input type="text" id="infoItem" placeholder="Ex: Modelo X, 220V..." class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+
+                        <button onclick="adicionarItem()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg text-xs shadow transition active:scale-95 flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-plus"></i> <span>Adicionar Item</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h4 class="text-xs font-bold uppercase tracking-wide text-slate-400">Inventário</h4>
+                        <div id="listaItensContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Rodapé do Painel -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 flex justify-between items-center shrink-0">
+                <span id="resumoArea" class="font-semibold text-slate-700 dark:text-slate-300">Área: 20.00 m²</span>
+                <button onclick="resetarProjeto()" class="text-red-500 hover:text-red-600 font-medium flex items-center space-x-1">
+                    <i class="fa-solid fa-trash-can"></i> <span>Limpar</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Área do Canvas -->
+        <section class="flex-1 bg-slate-200 dark:bg-slate-950 flex flex-col relative overflow-hidden h-full">
+            
+            <!-- Controles Flutuantes -->
+            <div class="absolute top-2 left-2 md:top-4 md:left-4 z-10 flex items-center space-x-1 md:space-x-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur border border-slate-200 dark:border-slate-800 p-1 md:p-1.5 rounded-xl shadow-sm">
+                <span class="text-[10px] md:text-xs font-semibold px-2 text-slate-700 dark:text-slate-200 flex items-center space-x-1">
+                    <i class="fa-solid fa-desktop text-blue-500"></i>
+                    <span class="hidden md:inline">Planta Interativa</span>
+                </span>
+                <div class="h-4 w-px bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
+                <button onclick="zoomIn()" class="p-1.5 md:p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 transition" title="Zoom In">
+                    <i class="fa-solid fa-magnifying-glass-plus text-xs md:text-sm"></i>
+                </button>
+                <button onclick="zoomOut()" class="p-1.5 md:p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 transition" title="Zoom Out">
+                    <i class="fa-solid fa-magnifying-glass-minus text-xs md:text-sm"></i>
+                </button>
+                <button onclick="resetZoom()" class="p-1.5 md:p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 transition text-[10px] md:text-xs font-medium px-2">
+                    Reset
+                </button>
+            </div>
+
+            <!-- Canvas HTML5 com preenchimento total flexível -->
+            <div id="canvasContainer" class="flex-1 flex items-center justify-center p-2 md:p-4 overflow-hidden w-full h-full">
+                <canvas id="plantaCanvas" class="shadow-xl md:shadow-2xl rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 cursor-crosshair block touch-none"></canvas>
+            </div>
+
+            <!-- Barra Inferior -->
+            <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border-t border-slate-200 dark:border-slate-800 px-4 md:px-6 py-2 flex items-center justify-between text-[10px] md:text-xs text-slate-600 dark:text-slate-400 shrink-0">
+                <div class="flex items-center space-x-3 md:space-x-6">
+                    <div>Portas: <span class="font-bold text-slate-800 dark:text-slate-200" id="statPortas">0</span></div>
+                    <div>Janelas: <span class="font-bold text-slate-800 dark:text-slate-200" id="statJanelas">0</span></div>
+                    <div>Itens: <span class="font-bold text-slate-800 dark:text-slate-200" id="statItens">0</span></div>
+                </div>
+                <div class="text-[10px] text-slate-400 hidden sm:block">
+                    Modo Interativo Ativado - Otimizado para Mobile e Desktop
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal de Mensagem -->
+    <div id="modalMensagem" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
+            <div id="modalIcone" class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200 mx-auto flex items-center justify-center text-xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+                <h3 id="modalTitulo" class="font-bold text-base text-slate-800 dark:text-slate-100">Aviso</h3>
+                <p id="modalTexto" class="text-xs text-slate-500 dark:text-slate-400 mt-1"></p>
+            </div>
+            <button onclick="fecharModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl text-sm transition active:scale-95">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Script Principal -->
+    <script>
+        let projeto = {
+            nome: "Sala Principal",
+            ocupantes: 0,
+            peDireito: 2.8,
+            tipoForma: 'retangulo',
+            largura: 5.0,
+            altura: 4.0,
+            paredeExternaMap: { 0: true, 1: true, 2: true, 3: true },
+            vertices: [
+                { x: 0, y: 0 }, { x: 5.0, y: 0 }, { x: 5.0, y: 4.0 }, { x: 0, y: 4.0 }
+            ],
+            norte: { relX: 5, relY: -1 },
+            aberturas: [
+                { id: 1, tipo: 'porta', paredeIndex: 0, parede: 'Parede 1 (Superior)', largura: 0.8, altura: 2.1, posicao: 1.5 },
+                { id: 2, tipo: 'janela', paredeIndex: 1, parede: 'Parede 2 (Direita)', largura: 1.5, altura: 1.2, posicao: 0.5 }
+            ],
+            itens: []
+        };
+
+        let zoomFactor = 1.0;
+        let arrastando = null; 
+        let modoDesenhoAtivo = false;
+        let pontoInicioDesenho = null;
+        let pontoAtualDesenho = null;
+        let anguloNorteReal = 0;
+        let sensorGenericoAtivo = null;
+        let sensorGiroscopioAtivo = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.addEventListener('touchmove', function(e) {
+                if(e.target.closest('#sidebar')) return;
+            }, { passive: false });
+
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('hidden');
+            }
+            carregarParaUI();
+            redimensionarCanvasEIniciar();
+            iniciarSensoresBussola();
+            
+            // Desbloqueia sensores no primeiro toque (exigido pelo Safari/iOS e WebViews)
+            const ativarNoToque = () => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().then(res => {
+                        if (res === 'granted') iniciarSensoresBussola();
+                    }).catch(() => {});
+                }
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    DeviceMotionEvent.requestPermission().catch(() => {});
+                }
+                iniciarSensoresBussola();
+            };
+            window.addEventListener('touchstart', ativarNoToque, { once: true });
+            window.addEventListener('click', ativarNoToque, { once: true });
+
+            window.addEventListener('resize', () => {
+                redimensionarCanvasEIniciar();
+                if (window.innerWidth >= 768) {
+                    const backdrop = document.getElementById('sidebarBackdrop');
+                    const sidebar = document.getElementById('sidebar');
+                    if(backdrop) backdrop.classList.add('hidden');
+                    if(sidebar) sidebar.classList.remove('hidden');
+                }
+            });
+            verificarTemaInicial();
+            configurarEventosMouseCanvas();
+        });
+
+        function iniciarSensoresBussola() {
+            // 1. Generic Sensor API (AbsoluteOrientationSensor - Android Chrome moderno)
+            if ('AbsoluteOrientationSensor' in window && !sensorGenericoAtivo) {
+                try {
+                    const sensor = new AbsoluteOrientationSensor({ frequency: 30, referenceFrame: 'screen' });
+                    sensor.addEventListener('reading', () => {
+                        const q = sensor.quaternion;
+                        if (!q) return;
+                        // Extrai o ângulo Yaw (azimute magnético) a partir do quaternion [x, y, z, w]
+                        const siny_cosp = 2 * (q[3] * q[2] + q[0] * q[1]);
+                        const cosy_cosp = 1 - 2 * (q[1] * q[1] + q[2] * q[2]);
+                        const yaw = Math.atan2(siny_cosp, cosy_cosp);
+                        sensorGiroscopioAtivo = true;
+                        anguloNorteReal = yaw;
+                        desenharPlanta();
+                    });
+                    sensor.addEventListener('error', () => { sensorGenericoAtivo = null; });
+                    sensor.start();
+                    sensorGenericoAtivo = sensor;
+                } catch (e) {
+                    sensorGenericoAtivo = null;
+                }
+            }
+
+            // 2. Eventos padrão de Orientação / Magnetômetro / Giroscópio
+            window.addEventListener('deviceorientationabsolute', processarOrientacaoDispositivo, true);
+            window.addEventListener('deviceorientation', processarOrientacaoDispositivo, true);
+
+            // 3. Fallback: Giroscópio puro (devicemotion) caso o aparelho não tenha magnetômetro
+            let ultimoTimestampMotion = 0;
+            window.addEventListener('devicemotion', (e) => {
+                if (sensorGiroscopioAtivo) return; // Prioriza bússola absoluta se disponível
+                if (e.rotationRate && typeof e.rotationRate.alpha === 'number') {
+                    const agora = performance.now();
+                    if (ultimoTimestampMotion > 0) {
+                        const dt = (agora - ultimoTimestampMotion) / 1000;
+                        // rotationRate.alpha está em graus/segundo no eixo Z perpendicular à tela
+                        if (Math.abs(e.rotationRate.alpha) > 0.5) {
+                            anguloNorteReal -= (e.rotationRate.alpha * dt) * (Math.PI / 180);
+                            desenharPlanta();
+                        }
+                    }
+                    ultimoTimestampMotion = agora;
+                }
+            }, true);
+        }
+
+        function processarOrientacaoDispositivo(e) {
+            if (sensorGenericoAtivo) return; // Evita conflito se AbsoluteOrientationSensor já estiver rodando
+            let heading = null;
+
+            if (typeof e.webkitCompassHeading === 'number' && !isNaN(e.webkitCompassHeading)) {
+                // iOS Safari (0 = Norte, 90 = Leste)
+                heading = e.webkitCompassHeading;
+            } else if (typeof e.alpha === 'number' && e.alpha !== null) {
+                // Android / Padrão W3C (alpha gira no sentido anti-horário)
+                heading = 360 - e.alpha;
+            }
+
+            if (heading !== null && !isNaN(heading)) {
+                sensorGiroscopioAtivo = true;
+                let screenAngle = (window.screen && window.screen.orientation) ? window.screen.orientation.angle : (window.orientation || 0);
+                heading = (heading + screenAngle + 360) % 360;
+                anguloNorteReal = -heading * (Math.PI / 180);
+                desenharPlanta();
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                if (window.innerWidth < 768 && backdrop) backdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('hidden');
+                if (backdrop) backdrop.classList.add('hidden');
+            }
+            setTimeout(redimensionarCanvasEIniciar, 50);
+        }
+
+        function mudarAba(aba) {
+            ['ambiente', 'aberturas', 'itens'].forEach(a => {
+                const elem = document.getElementById(`aba-conteudo-${a}`);
+                const btn = document.getElementById(`aba-btn-${a}`);
+                if(elem) elem.classList.add('hidden');
+                if(btn) btn.className = "flex-1 py-3 text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-700 transition flex items-center justify-center space-x-1 border-b-2 border-transparent";
+            });
+            const targetElem = document.getElementById(`aba-conteudo-${aba}`);
+            const targetBtn = document.getElementById(`aba-btn-${aba}`);
+            if(targetElem) targetElem.classList.remove('hidden');
+            if(targetBtn) targetBtn.className = "flex-1 py-3 text-[10px] md:text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 transition flex items-center justify-center space-x-1";
+        }
+
+        function alterarTipoForma(tipo) {
+            projeto.tipoForma = tipo;
+            const pRet = document.getElementById('painelRetangulo');
+            const pPol = document.getElementById('painelPoligono');
+            if(pRet) pRet.classList.toggle('hidden', tipo !== 'retangulo');
+            if(pPol) pPol.classList.toggle('hidden', tipo !== 'poligono');
+            if (tipo === 'retangulo') {
+                modoDesenhoAtivo = false;
+                atualizarBotaoDesenho();
+            }
+            desenharPlanta();
+        }
+
+        function alternarModoDesenhoParedes() {
+            modoDesenhoAtivo = !modoDesenhoAtivo;
+            if (modoDesenhoAtivo) {
+                if (!projeto.vertices || projeto.vertices.length === 0) {
+                    projeto.vertices = [];
+                }
+                projeto.aberturas = [];
+                projeto.itens = [];
+            }
+            atualizarBotaoDesenho();
+            desenharPlanta();
+        }
+
+        function atualizarBotaoDesenho() {
+            const btn = document.getElementById('btnModoDesenho');
+            const txt = document.getElementById('txtBtnDesenhar');
+            if(!btn || !txt) return;
+            if (modoDesenhoAtivo) {
+                btn.className = "flex-1 text-xs bg-amber-500 hover:bg-amber-600 text-white font-medium px-2 py-2 rounded-lg transition flex items-center justify-center space-x-1 shadow-sm animate-pulse";
+                txt.innerText = "Toque/Arraste na Tela";
+            } else {
+                btn.className = "flex-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-2 py-2 rounded-lg transition flex items-center justify-center space-x-1 shadow-sm";
+                txt.innerText = "Desenhar na Tela";
+            }
+        }
+
+        function limparDesenhoPoligono() {
+            projeto.vertices = [];
+            projeto.aberturas = [];
+            projeto.itens = [];
+            pontoInicioDesenho = null;
+            pontoAtualDesenho = null;
+            modoDesenhoAtivo = true;
+            atualizarBotaoDesenho();
+            desenharPlanta();
+        }
+
+        function atualizarEstado() {
+            const nomeAmb = document.getElementById('nomeAmbiente');
+            const qtdOcup = document.getElementById('qtdOcupantes');
+            const peDir = document.getElementById('peDireito');
+            const largSal = document.getElementById('larguraSala');
+            const altSal = document.getElementById('alturaSala');
+
+            if(nomeAmb) projeto.nome = nomeAmb.value || "Ambiente";
+            if(qtdOcup) projeto.ocupantes = parseInt(qtdOcup.value) || 0;
+            if(peDir) projeto.peDireito = parseFloat(peDir.value) || 2.8;
+            if(largSal) projeto.largura = Math.max(1, parseFloat(largSal.value) || 3.0);
+            if(altSal) projeto.altura = Math.max(1, parseFloat(altSal.value) || 3.0);
+            
+            if (projeto.tipoForma === 'retangulo') {
+                if (!projeto.paredeExternaMap) projeto.paredeExternaMap = {};
+                for(let i=0; i<4; i++) {
+                    const el = document.getElementById(`retParede${i}`);
+                    if(el) projeto.paredeExternaMap[i] = el.checked;
+                }
+            }
+
+            desenharPlanta();
+        }
+
+        function carregarParaUI() {
+            const elNome = document.getElementById('nomeAmbiente');
+            const elOcup = document.getElementById('qtdOcupantes');
+            const elPeDir = document.getElementById('peDireito');
+            const elForma = document.getElementById('tipoForma');
+            const elLarg = document.getElementById('larguraSala');
+            const elAlt = document.getElementById('alturaSala');
+
+            if (elNome) elNome.value = projeto.nome;
+            if (elOcup) elOcup.value = projeto.ocupantes || 0;
+            if (elPeDir) elPeDir.value = projeto.peDireito || 2.8;
+            if (elForma) elForma.value = projeto.tipoForma || 'retangulo';
+            if (elLarg) elLarg.value = projeto.largura;
+            if (elAlt) elAlt.value = projeto.altura;
+            
+            const painelRet = document.getElementById('painelRetangulo');
+            const painelPol = document.getElementById('painelPoligono');
+            if (painelRet) painelRet.classList.toggle('hidden', projeto.tipoForma === 'poligono');
+            if (painelPol) painelPol.classList.toggle('hidden', projeto.tipoForma !== 'poligono');
+            
+            if (projeto.tipoForma === 'retangulo' && projeto.paredeExternaMap) {
+                for(let i=0; i<4; i++) {
+                    const el = document.getElementById(`retParede${i}`);
+                    if(el) el.checked = projeto.paredeExternaMap[i] !== false;
+                }
+            }
+
+            if (!projeto.norte) projeto.norte = { relX: 5, relY: -1 };
+            renderizarListas();
+        }
+
+        function getParedesPoligono() {
+            if (projeto.tipoForma === 'retangulo') {
+                if (!projeto.paredeExternaMap) projeto.paredeExternaMap = {0: true, 1: true, 2: true, 3: true};
+                return [
+                    { id: 0, nome: 'Parede 1 (Superior)', comp: projeto.largura, p1: { x: 0, y: 0 }, p2: { x: projeto.largura, y: 0 }, externa: projeto.paredeExternaMap[0] !== false },
+                    { id: 1, nome: 'Parede 2 (Direita)', comp: projeto.altura, p1: { x: projeto.largura, y: 0 }, p2: { x: projeto.largura, y: projeto.altura }, externa: projeto.paredeExternaMap[1] !== false },
+                    { id: 2, nome: 'Parede 3 (Inferior)', comp: projeto.largura, p1: { x: projeto.largura, y: projeto.altura }, p2: { x: 0, y: projeto.altura }, externa: projeto.paredeExternaMap[2] !== false },
+                    { id: 3, nome: 'Parede 4 (Esquerda)', comp: projeto.altura, p1: { x: 0, y: projeto.altura }, p2: { x: 0, y: 0 }, externa: projeto.paredeExternaMap[3] !== false }
+                ];
+            }
+            let paredes = [];
+            let n = projeto.vertices ? projeto.vertices.length : 0;
+            if (n < 2) return paredes;
+            if (!projeto.paredeExternaMap) projeto.paredeExternaMap = {};
+            for (let i = 0; i < n; i++) {
+                let v1 = projeto.vertices[i];
+                let v2 = projeto.vertices[(i + 1) % n];
+                let dist = Math.hypot(v2.x - v1.x, v2.y - v1.y);
+                let externa = projeto.paredeExternaMap[i] !== undefined ? projeto.paredeExternaMap[i] : true;
+                paredes.push({ id: i, nome: `Parede ${i + 1}`, comp: dist, p1: v1, p2: v2, externa });
+            }
+            return paredes;
+        }
+
+        function atualizarMedidaParedePoligono(index, novoComprimento) {
+            if (projeto.vertices.length < 2) return;
+            let v1 = projeto.vertices[index];
+            let v2 = projeto.vertices[(index + 1) % projeto.vertices.length];
+            let compAtual = Math.hypot(v2.x - v1.x, v2.y - v1.y);
+            if (compAtual <= 0) return;
+            let fator = (parseFloat(novoComprimento) || 1.0) / compAtual;
+            
+            let dx = v2.x - v1.x;
+            let dy = v2.y - v1.y;
+            v2.x = v1.x + (dx * fator);
+            v2.y = v1.y + (dy * fator);
+            desenharPlanta();
+        }
+
+        function alternarTipoParede(index, valor) {
+            if (!projeto.paredeExternaMap) projeto.paredeExternaMap = {};
+            projeto.paredeExternaMap[index] = valor;
+            desenharPlanta();
+        }
+
+        function removerVerticePoligono(index) {
+            if (projeto.vertices.length <= 3) {
+                mostrarModal("Atenção", "Uma sala poligonal precisa de pelo menos 3 vértices.", "fa-triangle-exclamation", "text-amber-500");
+                return;
+            }
+            projeto.vertices.splice(index, 1);
+            desenharPlanta();
+        }
+
+        function ajustarPadraoAbertura(tipo) {
+            const larguraInput = document.getElementById('larguraAbertura');
+            const alturaInput = document.getElementById('alturaAbertura');
+            if(!larguraInput || !alturaInput) return;
+            if (tipo === 'porta') {
+                larguraInput.value = '0.8';
+                alturaInput.value = '2.1';
+            } else {
+                larguraInput.value = '1.5';
+                alturaInput.value = '1.2';
+            }
+        }
+
+        function adicionarAbertura() {
+            const tipo = document.getElementById('tipoAbertura').value;
+            const largura = parseFloat(document.getElementById('larguraAbertura').value) || 0.8;
+            const altura = parseFloat(document.getElementById('alturaAbertura').value) || 2.1;
+            const paredes = getParedesPoligono();
+
+            if (paredes.length === 0) {
+                mostrarModal("Atenção", "Desenhe a sala primeiro!", "fa-triangle-exclamation", "text-amber-500");
+                return;
+            }
+
+            let paredeIndex = 0;
+            let maiorComp = -1;
+            paredes.forEach((p, idx) => {
+                if (p.comp > maiorComp) { maiorComp = p.comp; paredeIndex = idx; }
+            });
+
+            const paredeSel = paredes[paredeIndex];
+            const posicao = Math.max(0, (paredeSel.comp - largura) / 2);
+
+            projeto.aberturas.push({ id: Date.now(), tipo, paredeIndex, parede: paredeSel.nome, largura, altura, posicao });
+            
+            if (window.innerWidth < 768) toggleSidebar();
+            desenharPlanta();
+        }
+
+        function removerAbertura(id) {
+            projeto.aberturas = projeto.aberturas.filter(a => a.id !== id);
+            desenharPlanta();
+        }
+
+        function adicionarItem() {
+            const nome = document.getElementById('nomeItem').value.trim();
+            const tipo = document.getElementById('tipoItem').value;
+            const qtd = parseInt(document.getElementById('qtdItem').value) || 1;
+            const info = document.getElementById('infoItem').value.trim();
+
+            if (!nome) {
+                mostrarModal("Atenção", "Digite um nome para o item.", "fa-triangle-exclamation", "text-amber-500");
+                return;
+            }
+
+            const bbox = getBoundingBox();
+            const relX = bbox.minX + (bbox.width / 2);
+            const relY = bbox.minY + (bbox.height / 2);
+
+            projeto.itens.push({ id: Date.now(), nome, tipo, qtd, info, relX, relY });
+            document.getElementById('nomeItem').value = '';
+            document.getElementById('infoItem').value = '';
+            
+            if (window.innerWidth < 768) toggleSidebar();
+            desenharPlanta();
+        }
+
+        function removerItem(id) {
+            projeto.itens = projeto.itens.filter(i => i.id !== id);
+            desenharPlanta();
+        }
+
+        function calcularAreaPoligono() {
+            if (projeto.tipoForma === 'retangulo') return projeto.largura * projeto.altura;
+            let area = 0, n = projeto.vertices.length;
+            if (n < 3) return 0;
+            for (let i = 0; i < n; i++) {
+                let j = (i + 1) % n;
+                area += (projeto.vertices[i].x * projeto.vertices[j].y) - (projeto.vertices[j].x * projeto.vertices[i].y);
+            }
+            return Math.abs(area / 2);
+        }
+
+        function getBoundingBox() {
+            if (projeto.tipoForma === 'retangulo') {
+                return { minX: 0, minY: 0, maxX: projeto.largura, maxY: projeto.altura, width: projeto.largura, height: projeto.altura };
+            }
+            if (!projeto.vertices || projeto.vertices.length === 0) {
+                return { minX: 0, minY: 0, maxX: 5, maxY: 5, width: 5, height: 5 };
+            }
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            projeto.vertices.forEach(v => {
+                if (v.x < minX) minX = v.x; if (v.y < minY) minY = v.y;
+                if (v.x > maxX) maxX = v.x; if (v.y > maxY) maxY = v.y;
+            });
+            return { minX, minY, maxX, maxY, width: Math.max(1, maxX - minX), height: Math.max(1, maxY - minY) };
+        }
+
+        function renderizarListas() {
+            if (projeto.tipoForma === 'poligono') {
+                const cParedes = document.getElementById('listaParedesContainer');
+                if(cParedes) {
+                    cParedes.innerHTML = '';
+                    const paredes = getParedesPoligono();
+                    if (paredes.length === 0) cParedes.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-2">Nenhuma parede desenhada.</p>';
+                    paredes.forEach((p, idx) => {
+                        cParedes.innerHTML += `
+                            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 rounded-lg text-xs space-y-1.5">
+                                <div class="flex items-center justify-between space-x-2">
+                                    <span class="font-medium text-slate-700 dark:text-slate-300">P${idx + 1}:</span>
+                                    <div class="flex items-center space-x-1 flex-1">
+                                        <input type="number" step="0.1" min="0.5" value="${p.comp.toFixed(2)}" onchange="atualizarMedidaParedePoligono(${idx}, this.value)" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500">
+                                        <span class="text-slate-400">m</span>
+                                    </div>
+                                    <button onclick="removerVerticePoligono(${idx})" class="text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                                <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-700/50">
+                                    <span class="text-[11px] text-slate-500">Tipo:</span>
+                                    <label class="flex items-center space-x-1.5 cursor-pointer text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                                        <input type="checkbox" ${p.externa ? 'checked' : ''} onchange="alternarTipoParede(${idx}, this.checked)" class="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5">
+                                        <span>Externa</span>
+                                    </label>
+                                </div>
+                            </div>`;
+                    });
+                }
+            }
+
+            const cAberturas = document.getElementById('listaAberturasContainer');
+            if(cAberturas) {
+                cAberturas.innerHTML = projeto.aberturas.length === 0 ? '<p class="text-xs text-slate-400 italic text-center py-2">Nenhuma abertura cadastrada.</p>' : '';
+                projeto.aberturas.forEach(ab => {
+                    const pNome = ab.paredeIndex !== undefined ? `Parede ${ab.paredeIndex + 1}` : ab.parede;
+                    cAberturas.innerHTML += `
+                        <div class="flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 rounded-lg text-xs">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid ${ab.tipo === 'porta' ? 'fa-door-open text-amber-500' : 'fa-window-maximize text-blue-500'}"></i>
+                                <div>
+                                    <span class="font-medium capitalize">${ab.tipo}</span> <span class="text-slate-400">(${pNome})</span>
+                                    <div class="text-[10px] text-slate-500">Larg: ${ab.largura}m | Alt: ${ab.altura}m</div>
+                                </div>
+                            </div>
+                            <button onclick="removerAbertura(${ab.id})" class="text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>`;
+                });
+            }
+
+            const cItens = document.getElementById('listaItensContainer');
+            if(cItens) {
+                cItens.innerHTML = projeto.itens.length === 0 ? '<p class="text-xs text-slate-400 italic text-center py-2">Nenhum item cadastrado.</p>' : '';
+                projeto.itens.forEach(it => {
+                    let icone = 'fa-laptop text-indigo-500';
+                    if (it.tipo === 'lampada') icone = 'fa-lightbulb text-yellow-500';
+                    else if (it.tipo === 'tomada') icone = 'fa-plug text-emerald-500';
+                    else if (it.tipo === 'ar-condicionado') icone = 'fa-snowflake text-cyan-500';
+                    else if (it.tipo === 'mobilia') icone = 'fa-couch text-amber-600';
+                    
+                    cItens.innerHTML += `
+                        <div class="flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 rounded-lg text-xs">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid ${icone}"></i>
+                                <div>
+                                    <span class="font-medium">${it.nome}</span>
+                                    <div class="text-[10px] text-slate-500">Qtd: ${it.qtd} ${it.info ? '| ' + it.info : ''}</div>
+                                </div>
+                            </div>
+                            <button onclick="removerItem(${it.id})" class="text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>`;
+                });
+            }
+
+            const sPortas = document.getElementById('statPortas');
+            const sJanelas = document.getElementById('statJanelas');
+            const sItens = document.getElementById('statItens');
+            const resArea = document.getElementById('resumoArea');
+
+            if(sPortas) sPortas.innerText = projeto.aberturas.filter(a => a.tipo === 'porta').length;
+            if(sJanelas) sJanelas.innerText = projeto.aberturas.filter(a => a.tipo === 'janela').length;
+            if(sItens) sItens.innerText = projeto.itens.reduce((acc, curr) => acc + curr.qtd, 0);
+            if(resArea) resArea.innerText = `Área: ${calcularAreaPoligono().toFixed(2)} m²`;
+        }
+
+        function getGeometriaCanvas(cw_custom = null, ch_custom = null) {
+            const canvas = document.getElementById('plantaCanvas');
+            const cw = cw_custom || (canvas ? canvas.width : 800);
+            const ch = ch_custom || (canvas ? canvas.height : 600);
+            const bbox = getBoundingBox();
+
+            const margem = window.innerWidth < 768 ? 50 : 90;
+            const maxW = cw - (margem * 2);
+            const maxH = ch - (margem * 2);
+
+            const escalaX = maxW / bbox.width;
+            const escalaY = maxH / bbox.height;
+            const escala = Math.min(escalaX, escalaY) * zoomFactor;
+
+            const salaW_px = bbox.width * escala;
+            const salaH_px = bbox.height * escala;
+
+            const startX = (cw - salaW_px) / 2 - (bbox.minX * escala);
+            const startY = (ch - salaH_px) / 2 - (bbox.minY * escala);
+            const espessuraParede = window.innerWidth < 768 ? 10 : 14;
+
+            return { cw, ch, bbox, escala, salaW_px, salaH_px, startX, startY, espessuraParede };
+        }
+
+        function configurarEventosMouseCanvas() {
+            const canvas = document.getElementById('plantaCanvas');
+            if(!canvas) return;
+
+            function getCanvasCoords(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : (e.clientX || 0);
+                const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : (e.clientY || 0);
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+
+            function previnaEventosNativos(e) {
+                if (e.type.startsWith('touch') && e.cancelable) e.preventDefault();
+            }
+
+            function aoIniciarCliqueOuToque(e) {
+                previnaEventosNativos(e);
+                const coords = getCanvasCoords(e);
+                const mouseX = coords.x, mouseY = coords.y;
+                const geo = getGeometriaCanvas();
+
+                if (modoDesenhoAtivo && projeto.tipoForma === 'poligono') {
+                    let mX = Math.round(((mouseX - geo.startX) / geo.escala) * 10) / 10;
+                    let mY = Math.round(((mouseY - geo.startY) / geo.escala) * 10) / 10;
+
+                    if (projeto.vertices.length >= 3) {
+                        let v0 = projeto.vertices[0];
+                        let v0Px = geo.startX + (v0.x * geo.escala);
+                        let v0Py = geo.startY + (v0.y * geo.escala);
+                        if (Math.hypot(mouseX - v0Px, mouseY - v0Py) <= 30) {
+                            modoDesenhoAtivo = false;
+                            pontoInicioDesenho = null;
+                            pontoAtualDesenho = null;
+                            atualizarBotaoDesenho();
+                            desenharPlanta();
+                            return;
+                        }
+                    }
+
+                    pontoInicioDesenho = { x: mX, y: mY };
+                    pontoAtualDesenho = { x: mX, y: mY };
+                    projeto.vertices.push({ x: mX, y: mY });
+                    desenharPlanta();
+                    return;
+                }
+
+                if (projeto.norte) {
+                    if (projeto.norte.relX === undefined) {
+                        projeto.norte.relX = (projeto.norte.x - geo.startX) / geo.escala || 0;
+                        projeto.norte.relY = (projeto.norte.y - geo.startY) / geo.escala || 0;
+                    }
+                    let nx = geo.startX + (projeto.norte.relX * geo.escala);
+                    let ny = geo.startY + (projeto.norte.relY * geo.escala);
+                    if (Math.hypot(mouseX - nx, mouseY - ny) <= 35) {
+                        arrastando = { tipo: 'norte' }; return;
+                    }
+                }
+
+                for (let it of projeto.itens) {
+                    let ix = geo.startX + (it.relX * geo.escala);
+                    let iy = geo.startY + (it.relY * geo.escala);
+                    if (Math.hypot(mouseX - ix, mouseY - iy) <= 30) {
+                        arrastando = { tipo: 'item', id: it.id }; return;
+                    }
+                }
+
+                const paredes = getParedesPoligono();
+                for (let ab of projeto.aberturas) {
+                    let p = paredes[ab.paredeIndex !== undefined ? ab.paredeIndex : 0];
+                    if (!p) continue;
+                    let p1x = geo.startX + (p.p1.x * geo.escala), p1y = geo.startY + (p.p1.y * geo.escala);
+                    let p2x = geo.startX + (p.p2.x * geo.escala), p2y = geo.startY + (p.p2.y * geo.escala);
+
+                    let fracMeio = (ab.posicao + (ab.largura / 2)) / p.comp;
+                    let centroAx = p1x + (p2x - p1x) * fracMeio;
+                    let centroAy = p1y + (p2y - p1y) * fracMeio;
+                    
+                    let raioHitbox = Math.max(30, (ab.largura * geo.escala) / 2 + 10);
+                    if (Math.hypot(mouseX - centroAx, mouseY - centroAy) <= raioHitbox) {
+                        arrastando = { tipo: 'abertura', id: ab.id }; return;
+                    }
+                }
+            }
+
+            function aoMoverCliqueOuToque(e) {
+                previnaEventosNativos(e);
+                const coords = getCanvasCoords(e);
+                const mouseX = coords.x, mouseY = coords.y;
+                const geo = getGeometriaCanvas();
+
+                if (modoDesenhoAtivo && projeto.tipoForma === 'poligono' && pontoInicioDesenho) {
+                    let mX = Math.round(((mouseX - geo.startX) / geo.escala) * 10) / 10;
+                    let mY = Math.round(((mouseY - geo.startY) / geo.escala) * 10) / 10;
+                    let lastIdx = projeto.vertices.length - 1;
+                    if (lastIdx >= 0) projeto.vertices[lastIdx] = { x: mX, y: mY };
+                    pontoAtualDesenho = { x: mX, y: mY };
+                    desenharPlanta();
+                    return;
+                }
+
+                if (!arrastando) return;
+
+                if (arrastando.tipo === 'norte') {
+                    projeto.norte.relX = (mouseX - geo.startX) / geo.escala;
+                    projeto.norte.relY = (mouseY - geo.startY) / geo.escala;
+                    desenharPlanta();
+                } else if (arrastando.tipo === 'item') {
+                    let item = projeto.itens.find(i => i.id === arrastando.id);
+                    if (item) {
+                        item.relX = (mouseX - geo.startX) / geo.escala;
+                        item.relY = (mouseY - geo.startY) / geo.escala;
+                        desenharPlanta();
+                    }
+                } else if (arrastando.tipo === 'abertura') {
+                    let ab = projeto.aberturas.find(a => a.id === arrastando.id);
+                    if (ab) {
+                        const paredes = getParedesPoligono();
+                        let minDist = Infinity, bestU = 0, bestPIdx = ab.paredeIndex;
+                        paredes.forEach((p, idx) => {
+                            if (!p) return;
+                            let p1x = geo.startX + (p.p1.x * geo.escala), p1y = geo.startY + (p.p1.y * geo.escala);
+                            let p2x = geo.startX + (p.p2.x * geo.escala), p2y = geo.startY + (p.p2.y * geo.escala);
+                            let dx = p2x - p1x, dy = p2y - p1y;
+                            let lenSq = (dx * dx) + (dy * dy);
+                            let u = lenSq === 0 ? 0 : (((mouseX - p1x) * dx) + ((mouseY - p1y) * dy)) / lenSq;
+                            u = Math.max(0, Math.min(1, u));
+                            let dist = Math.hypot(mouseX - (p1x + u * dx), mouseY - (p1y + u * dy));
+                            if (dist < minDist) { minDist = dist; bestU = u; bestPIdx = idx; }
+                        });
+                        if (bestPIdx !== undefined && paredes[bestPIdx]) {
+                            ab.paredeIndex = bestPIdx;
+                            ab.parede = paredes[bestPIdx].nome;
+                            ab.posicao = Math.max(0, Math.min(paredes[bestPIdx].comp - ab.largura, bestU * paredes[bestPIdx].comp));
+                            desenharPlanta();
+                        }
+                    }
+                }
+            }
+
+            function aoFinalizarCliqueOuToque(e) {
+                if (modoDesenhoAtivo && pontoInicioDesenho) { pontoInicioDesenho = null; pontoAtualDesenho = null; }
+                arrastando = null;
+            }
+
+            canvas.addEventListener('mousedown', aoIniciarCliqueOuToque);
+            canvas.addEventListener('mousemove', aoMoverCliqueOuToque);
+            window.addEventListener('mouseup', aoFinalizarCliqueOuToque);
+
+            canvas.addEventListener('touchstart', aoIniciarCliqueOuToque, { passive: false });
+            canvas.addEventListener('touchmove', aoMoverCliqueOuToque, { passive: false });
+            window.addEventListener('touchend', aoFinalizarCliqueOuToque, { passive: false });
+            canvas.addEventListener('touchcancel', aoFinalizarCliqueOuToque, { passive: false });
+        }
+
+        function redimensionarCanvasEIniciar() {
+            const container = document.getElementById('canvasContainer');
+            const canvas = document.getElementById('plantaCanvas');
+            if(!container || !canvas) return;
+
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            desenharPlanta();
+        }
+
+        function desenharPlanta(ctxCustom = null, widthCustom = null, heightCustom = null, isExport = false) {
+            if (!isExport) renderizarListas();
+            const canvas = document.getElementById('plantaCanvas');
+            if (!canvas || !canvas.getContext) return;
+            const ctx = ctxCustom || canvas.getContext('2d');
+
+            const cw = widthCustom || canvas.width;
+            const ch = heightCustom || canvas.height;
+
+            if (!ctxCustom) ctx.clearRect(0, 0, cw, ch);
+
+            const isDark = !isExport && document.documentElement.classList.contains('dark');
+            const corFundo = isExport ? '#f8fafc' : (isDark ? '#0f172a' : '#ffffff');
+            const corParede = isDark ? '#334155' : '#1e293b';
+            const corLinhaCota = isDark ? '#64748b' : '#94a3b8';
+            const corTexto = isDark ? '#cbd5e1' : '#475569';
+            const corGrid = isDark ? '#1e293b' : '#f1f5f9';
+
+            ctx.fillStyle = corFundo;
+            ctx.fillRect(0, 0, cw, ch);
+
+            if (!isExport) {
+                ctx.strokeStyle = corGrid; ctx.lineWidth = 1; const gridSize = 35;
+                for (let x = 0; x < cw; x += gridSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ch); ctx.stroke(); }
+                for (let y = 0; y < ch; y += gridSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke(); }
+            }
+
+            const geo = getGeometriaCanvas(cw, ch);
+            if (projeto.tipoForma === 'retangulo') {
+                projeto.vertices = [{ x: 0, y: 0 }, { x: projeto.largura, y: 0 }, { x: projeto.largura, y: projeto.altura }, { x: 0, y: projeto.altura }];
+            }
+
+            const n = projeto.vertices ? projeto.vertices.length : 0;
+            let signedArea = 0;
+            if (n >= 3) {
+                for (let i = 0; i < n; i++) {
+                    let j = (i + 1) % n;
+                    signedArea += (projeto.vertices[i].x * projeto.vertices[j].y) - (projeto.vertices[j].x * projeto.vertices[i].y);
+                }
+            } else signedArea = 1;
+            let outsideMult = signedArea >= 0 ? 1 : -1;
+            let insideDir = signedArea >= 0 ? 1 : -1;
+
+            if (n >= 2) {
+                ctx.fillStyle = corParede;
+                ctx.beginPath();
+                ctx.moveTo(geo.startX + (projeto.vertices[0].x * geo.escala), geo.startY + (projeto.vertices[0].y * geo.escala));
+                for (let i = 1; i < n; i++) {
+                    ctx.lineTo(geo.startX + (projeto.vertices[i].x * geo.escala), geo.startY + (projeto.vertices[i].y * geo.escala));
+                }
+                if (n >= 3 && !modoDesenhoAtivo) ctx.closePath();
+                ctx.lineWidth = geo.espessuraParede;
+                ctx.strokeStyle = corParede;
+                ctx.stroke();
+                if (n >= 3 && !modoDesenhoAtivo) { ctx.fillStyle = corFundo; ctx.fill(); }
+            }
+
+            const paredes = getParedesPoligono();
+            projeto.aberturas.forEach(ab => {
+                let p = paredes[ab.paredeIndex !== undefined ? ab.paredeIndex : 0];
+                if (!p || !p.p1 || !p.p2) return;
+                let p1x = geo.startX + (p.p1.x * geo.escala), p1y = geo.startY + (p.p1.y * geo.escala);
+                let p2x = geo.startX + (p.p2.x * geo.escala), p2y = geo.startY + (p.p2.y * geo.escala);
+                let dx = p2x - p1x, dy = p2y - p1y, ang = Math.atan2(dy, dx);
+                let ax = p1x + dx * (ab.posicao / p.comp), ay = p1y + dy * (ab.posicao / p.comp);
+                let largPx = Math.max(5, ab.largura * geo.escala);
+
+                ctx.save();
+                ctx.translate(ax, ay); ctx.rotate(ang);
+                ctx.fillStyle = corFundo;
+                ctx.fillRect(0, -geo.espessuraParede / 2 - 1, largPx, geo.espessuraParede + 2);
+
+                if (ab.tipo === 'janela') {
+                    ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(largPx, 0); ctx.stroke();
+                    ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(0, -3); ctx.lineTo(largPx, -3); ctx.moveTo(0, 3); ctx.lineTo(largPx, 3); ctx.stroke();
+                } else {
+                    ctx.strokeStyle = '#d97706'; ctx.lineWidth = 2.5;
+                    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, largPx * insideDir); ctx.stroke();
+                    ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+                    ctx.beginPath(); 
+                    if (insideDir === 1) ctx.arc(0, 0, Math.max(1, largPx), 0, Math.PI / 2);
+                    else ctx.arc(0, 0, Math.max(1, largPx), -Math.PI / 2, 0);
+                    ctx.stroke(); ctx.setLineDash([]);
+                }
+                ctx.restore();
+            });
+
+            paredes.forEach((p, idx) => {
+                if (!p.p1 || !p.p2 || p.comp <= 0) return;
+                let p1x = geo.startX + (p.p1.x * geo.escala), p1y = geo.startY + (p.p1.y * geo.escala);
+                let p2x = geo.startX + (p.p2.x * geo.escala), p2y = geo.startY + (p.p2.y * geo.escala);
+                let dx = p2x - p1x, dy = p2y - p1y, len = Math.hypot(dx, dy);
+                if (len === 0) return;
+                
+                let nx = (dy / len) * outsideMult, ny = (-dx / len) * outsideMult;
+                const distOffset = 25, extLinha = 6;
+                let cP1x = p1x + nx * distOffset, cP1y = p1y + ny * distOffset;
+                let cP2x = p2x + nx * distOffset, cP2y = p2y + ny * distOffset;
+
+                ctx.save();
+                if (p.externa === false) {
+                    ctx.strokeStyle = isDark ? '#475569' : '#cbd5e1';
+                    ctx.setLineDash([2, 2]);
+                } else {
+                    ctx.strokeStyle = corLinhaCota;
+                }
+                
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(p1x + nx * 8, p1y + ny * 8); ctx.lineTo(p1x + nx * (distOffset + extLinha), p1y + ny * (distOffset + extLinha));
+                ctx.moveTo(p2x + nx * 8, p2y + ny * 8); ctx.lineTo(p2x + nx * (distOffset + extLinha), p2y + ny * (distOffset + extLinha));
+                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cP1x, cP1y); ctx.lineTo(cP2x, cP2y); ctx.stroke();
+                ctx.setLineDash([]);
+
+                let ang = Math.atan2(dy, dx);
+                [ {x: cP1x, y: cP1y}, {x: cP2x, y: cP2y} ].forEach(pt => {
+                    ctx.save(); ctx.translate(pt.x, pt.y); ctx.rotate(ang + Math.PI / 4);
+                    ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(5, 0); ctx.stroke(); ctx.restore();
+                });
+
+                ctx.translate((cP1x + cP2x) / 2, (cP1y + cP2y) / 2);
+                if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
+                ctx.rotate(ang);
+                ctx.font = "bold 10px Inter, sans-serif"; ctx.fillStyle = corTexto;
+                ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+                let tagTipo = p.externa === false ? " (Interna)" : " (Externa)";
+                ctx.fillText(`P${idx + 1}: ${p.comp.toFixed(2)}m${tagTipo}`, 0, -4);
+                ctx.restore();
+            });
+
+            if (projeto.tipoForma === 'poligono' && modoDesenhoAtivo && projeto.vertices && projeto.vertices.length >= 3) {
+                let v0Px = geo.startX + (projeto.vertices[0].x * geo.escala), v0Py = geo.startY + (projeto.vertices[0].y * geo.escala);
+                ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(v0Px, v0Py, 10, 0, Math.PI * 2); ctx.fill();
+            }
+
+            if (n >= 3) {
+                let cX = 0, cY = 0, area = 0;
+                for (let i = 0; i < n; i++) {
+                    let j = (i + 1) % n;
+                    let factor = (projeto.vertices[i].x * projeto.vertices[j].y) - (projeto.vertices[j].x * projeto.vertices[i].y);
+                    area += factor;
+                    cX += (projeto.vertices[i].x + projeto.vertices[j].x) * factor;
+                    cY += (projeto.vertices[i].y + projeto.vertices[j].y) * factor;
+                }
+                area /= 2;
+                if (area !== 0) { cX /= (6 * area); cY /= (6 * area); }
+                else { cX = geo.bbox.minX + geo.bbox.width / 2; cY = geo.bbox.minY + geo.bbox.height / 2; }
+                
+                cX = geo.startX + (cX * geo.escala); cY = geo.startY + (cY * geo.escala);
+                ctx.textAlign = "center"; ctx.font = "bold 14px Inter, sans-serif"; ctx.fillStyle = corTexto;
+                ctx.fillText(projeto.nome, cX, cY - 10);
+                ctx.font = "11px Inter, sans-serif"; ctx.fillStyle = corLinhaCota;
+                ctx.fillText(`${calcularAreaPoligono().toFixed(2)} m²`, cX, cY + 12);
+            }
+
+            if (projeto.norte) {
+                if (projeto.norte.relX === undefined) {
+                    projeto.norte.relX = (projeto.norte.x - geo.startX) / geo.escala || 0;
+                    projeto.norte.relY = (projeto.norte.y - geo.startY) / geo.escala || 0;
+                }
+                let nx = geo.startX + (projeto.norte.relX * geo.escala);
+                let ny = geo.startY + (projeto.norte.relY * geo.escala);
+                
+                ctx.save();
+                ctx.translate(nx, ny);
+                ctx.rotate(anguloNorteReal);
+                ctx.fillStyle = isDark ? '#1e293b' : '#ffffff'; ctx.strokeStyle = '#3b82f6';
+                ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(-4, 0); ctx.lineTo(4, 0); ctx.fill();
+                ctx.fillStyle = isDark ? '#94a3b8' : '#64748b'; ctx.beginPath(); ctx.moveTo(0, 14); ctx.lineTo(-4, 0); ctx.lineTo(4, 0); ctx.fill();
+                ctx.font = "bold 9px Inter, sans-serif"; ctx.fillStyle = '#ef4444'; ctx.textAlign = "center"; ctx.fillText("N", 0, -17);
+                ctx.restore();
+            }
+
+            projeto.itens.forEach((it) => {
+                let ix = geo.startX + (it.relX * geo.escala), iy = geo.startY + (it.relY * geo.escala);
+                ctx.fillStyle = isDark ? '#1e293b' : '#f8fafc'; ctx.strokeStyle = corLinhaCota;
+                ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(ix, iy, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.font = "11px sans-serif"; ctx.textAlign = "center";
+                let emoji = '💻';
+                if (it.tipo === 'lampada') emoji = '💡';
+                else if (it.tipo === 'tomada') emoji = '🔌';
+                else if (it.tipo === 'ar-condicionado') emoji = '❄️';
+                else if (it.tipo === 'mobilia') emoji = '🛋️';
+                ctx.fillText(emoji, ix, iy + 4);
+                ctx.font = "9px Inter, sans-serif"; ctx.fillStyle = corTexto;
+                ctx.fillText(`${it.nome} (${it.qtd}x)`, ix, iy + 24);
+            });
+        }
+
+        function exportarImagemRelatorio() {
+            const exportCanvas = document.createElement('canvas');
+            const width = 1200, height = 1500;
+            exportCanvas.width = width; exportCanvas.height = height;
+            const ctx = exportCanvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#1e293b'; ctx.font = "bold 26px Inter, sans-serif"; ctx.fillText("RELATÓRIO DE PLANTA BAIXA", 50, 60);
+            ctx.fillStyle = '#64748b'; ctx.font = "14px Inter, sans-serif";
+            ctx.fillText(`Projeto: ${projeto.nome} | Ocupantes: ${projeto.ocupantes || 0} | Pé Direito: ${projeto.peDireito || 2.8}m | Área: ${calcularAreaPoligono().toFixed(2)} m²`, 50, 90);
+
+            ctx.save(); ctx.translate(50, 120);
+            ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, width - 100, 700);
+            ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(0, 0, width - 100, 700);
+            
+            // Renderiza a planta utilizando proporção estendida e preservando o posicionamento absoluto do norte
+            desenharPlanta(ctx, width - 100, 700, true);
+            ctx.restore();
+
+            let startY = 860;
+            ctx.fillStyle = '#1e293b'; ctx.font = "bold 18px Inter, sans-serif"; ctx.fillText("1. Aberturas", 50, startY);
+            startY += 20; ctx.fillStyle = '#f1f5f9'; ctx.fillRect(50, startY, width - 100, 30);
+            ctx.fillStyle = '#475569'; ctx.font = "bold 13px Inter, sans-serif";
+            ctx.fillText("Tipo", 70, startY + 20); ctx.fillText("Parede", 350, startY + 20); ctx.fillText("Largura / Altura", 800, startY + 20);
+            
+            startY += 30; ctx.font = "13px Inter, sans-serif";
+            projeto.aberturas.forEach((ab, idx) => {
+                if (idx % 2 === 1) { ctx.fillStyle = '#f8fafc'; ctx.fillRect(50, startY, width - 100, 25); }
+                ctx.fillStyle = '#1e293b'; ctx.fillText(ab.tipo.toUpperCase(), 70, startY + 18);
+                ctx.fillText(ab.parede, 350, startY + 18); ctx.fillText(`${ab.largura}m x ${ab.altura}m`, 800, startY + 18);
+                startY += 25;
+            });
+
+            startY += 40;
+            ctx.fillStyle = '#1e293b'; ctx.font = "bold 18px Inter, sans-serif"; ctx.fillText("2. Itens e Equipamentos", 50, startY);
+            startY += 20; ctx.fillStyle = '#f1f5f9'; ctx.fillRect(50, startY, width - 100, 30);
+            ctx.fillStyle = '#475569'; ctx.font = "bold 13px Inter, sans-serif";
+            ctx.fillText("Item", 70, startY + 20); ctx.fillText("Categoria", 450, startY + 20); ctx.fillText("Quantidade", 900, startY + 20);
+
+            startY += 30; ctx.font = "13px Inter, sans-serif";
+            projeto.itens.forEach((it, idx) => {
+                if (idx % 2 === 1) { ctx.fillStyle = '#f8fafc'; ctx.fillRect(50, startY, width - 100, 25); }
+                ctx.fillStyle = '#1e293b'; ctx.fillText(it.nome + (it.info ? ` (${it.info})` : ''), 70, startY + 18);
+                ctx.fillText(it.tipo.toUpperCase(), 450, startY + 18); ctx.fillText(`${it.qtd} un`, 900, startY + 18);
+                startY += 25;
+            });
+
+            const link = document.createElement('a');
+            link.download = `projeto_${projeto.nome}.png`;
+            link.href = exportCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function salvarProjeto() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projeto));
+            const dl = document.createElement('a'); dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `projeto_${projeto.nome}.json`);
+            dl.click();
+        }
+
+        function carregarProjeto(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    projeto = JSON.parse(e.target.result);
+                    carregarParaUI(); desenharPlanta();
+                } catch(err) { mostrarModal("Erro", "Arquivo inválido", "fa-xmark", "text-red-500"); }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetarProjeto() {
+            if (confirm("Limpar projeto?")) {
+                projeto = { nome: "Novo", ocupantes: 0, peDireito: 2.8, tipoForma: 'retangulo', largura: 4, altura: 3, aberturas: [], itens: [], norte: {relX: 4, relY: -1} };
+                carregarParaUI(); desenharPlanta();
+            }
+        }
+
+        function zoomIn() { zoomFactor = Math.min(zoomFactor + 0.2, 3); desenharPlanta(); }
+        function zoomOut() { zoomFactor = Math.max(zoomFactor - 0.2, 0.4); desenharPlanta(); }
+        function resetZoom() { zoomFactor = 1.0; desenharPlanta(); }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const iconeTema = document.getElementById('iconeTema');
+            if (iconeTema) {
+                iconeTema.className = document.documentElement.classList.contains('dark') ? "fa-solid fa-sun text-yellow-400" : "fa-solid fa-moon text-slate-700";
+            }
+            desenharPlanta();
+        }
+        function verificarTemaInicial() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) toggleDarkMode();
+        }
+
+        function mostrarModal(t, txt, ic, cor) {
+            document.getElementById('modalTitulo').innerText = t; document.getElementById('modalTexto').innerText = txt;
+            document.getElementById('modalIcone').className = `w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center text-xl ${cor}`;
+            document.getElementById('modalIcone').innerHTML = `<i class="fa-solid ${ic}"></i>`;
+            document.getElementById('modalMensagem').classList.remove('hidden');
+        }
+        function fecharModal() { document.getElementById('modalMensagem').classList.add('hidden'); }
+    </script>
+</body>
+</html>
