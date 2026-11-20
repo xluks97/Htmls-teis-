@@ -1,0 +1,3851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duelo Gastronômico: Pastel ou Pizza</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka (títulos expressivos) e Plus Jakarta Sans (interface limpa) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Fredoka"', 'cursive'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            cream: '#FFFDF7',
+            p1: {
+              light: '#F0FDFA',
+              soft: '#CCFBF1',
+              main: '#0D9488',
+              dark: '#0F766E',
+              deep: '#115E59',
+            },
+            p2: {
+              light: '#FFF1F2',
+              soft: '#FFE4E6',
+              main: '#E11D48',
+              dark: '#BE123C',
+              deep: '#9F1239',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #FFFDF7;
+      background-image:
+        radial-gradient(#FDE68A 1.25px, transparent 1.25px),
+        radial-gradient(#FED7AA 1.25px, #FFFDF7 1.25px);
+      background-size: 34px 34px;
+      background-position: 0 0, 17px 17px;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .font-display {
+      font-family: 'Fredoka', cursive;
+    }
+
+    /* Toalha xadrez vermelha e branca clássica */
+    .xadrez-bg {
+      background-color: #FFFFFF;
+      background-image:
+        linear-gradient(45deg, rgba(225, 29, 72, 0.11) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(225, 29, 72, 0.11) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(225, 29, 72, 0.11) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(225, 29, 72, 0.11) 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    }
+
+    .header-pattern {
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+    }
+
+    /* Botão 3D tátil */
+    .btn-3d {
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+    }
+    .btn-3d:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25) !important;
+    }
+    .btn-3d:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92) translateY(8px); }
+      70% { transform: scale(1.02) translateY(-2px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(-1deg); }
+      50% { transform: translateY(-6px) rotate(1deg); }
+    }
+    .animate-float {
+      animation: floatSlow 3.5s ease-in-out infinite;
+    }
+
+    @keyframes hammerHit {
+      0% { transform: rotate(-40deg) scale(1.35); opacity: 0; }
+      55% { transform: rotate(10deg) scale(0.95); opacity: 1; }
+      100% { transform: rotate(0deg) scale(1); opacity: 1; }
+    }
+    .animate-hammer {
+      animation: hammerHit 0.4s ease-out forwards;
+    }
+
+    /* Slider customizado */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 12px;
+      border-radius: 999px;
+      background: #E7E5E4;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #F59E0B;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #F59E0B;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-stone-800 selection:bg-amber-300 selection:text-stone-950">
+
+  <!-- CANVAS DE CONFETES (TELA FINAL) -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+
+  <!-- TOAST DE NOTIFICAÇÃO DISCRETO -->
+  <div id="toast-banner" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-stone-900/95 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-2xl shadow-xl border border-amber-400/60 flex items-center gap-2 max-w-[92vw] text-center">
+    <span id="toast-text">Código copiado!</span>
+  </div>
+
+  <!-- CABEÇALHO -->
+  <header class="header-pattern text-white shadow-lg border-b-4 border-amber-400 sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div id="header-mode-icon" class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-amber-400 text-stone-900 flex items-center justify-center shadow-md border-2 border-white text-2xl select-none shrink-0">
+          🥟
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-lg sm:text-2xl font-bold leading-none tracking-tight drop-shadow truncate">
+              Duelo Gastronômico
+            </h1>
+            <span id="connection-status-badge" class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold bg-black/25 text-amber-100 px-2 py-0.5 rounded-full border border-white/20">
+              <span id="connection-dot" class="w-2 h-2 rounded-full bg-amber-300 animate-pulse"></span>
+              <span id="connection-text">Conectando...</span>
+            </span>
+          </div>
+          <p id="header-subtitle" class="text-[11px] sm:text-xs text-amber-200 font-bold tracking-wide uppercase mt-0.5 truncate">
+            Pastel ou Pizza • 2 Celulares ou Local
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <span id="header-room-badge" class="hidden bg-white text-red-700 font-extrabold text-xs sm:text-sm px-2.5 py-1 rounded-full shadow border border-amber-300">
+          Sala ----
+        </span>
+        <span id="header-round-badge" class="hidden bg-amber-400 text-stone-950 font-extrabold text-xs sm:text-sm px-2.5 sm:px-3 py-1 rounded-full shadow border border-amber-200">
+          Item 1
+        </span>
+        <button id="btn-sound" onclick="toggleSound()" title="Alternar Sons" class="p-2 sm:p-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white transition border border-white/25 text-sm font-bold flex items-center gap-1 cursor-pointer">
+          <span id="sound-icon">🔊</span>
+          <span class="hidden sm:inline text-xs">Som</span>
+        </button>
+        <button onclick="toggleRulesModal(true)" class="p-2 sm:p-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-extrabold text-xs sm:text-sm shadow transition border border-amber-200 cursor-pointer">
+          📜 <span class="hidden sm:inline">Regras</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-6 py-5 sm:py-7 flex flex-col justify-center">
+
+    <!-- =========================================================================
+         TELA 1: LOBBY DE 2 CELULARES (ONLINE) OU CONFIGURAÇÃO OFFLINE
+         ========================================================================= -->
+    <section id="screen-setup" class="animate-pop space-y-5">
+      <div class="bg-white/95 backdrop-blur rounded-3xl shadow-xl border-4 border-amber-400 overflow-hidden">
+
+        <!-- Banner Hero -->
+        <div class="xadrez-bg px-4 py-5 sm:p-7 text-center border-b-2 border-amber-200">
+          <span class="inline-flex items-center gap-1.5 bg-red-600 text-white text-xs sm:text-sm font-extrabold px-4 py-1.5 rounded-full shadow mb-2">
+            📱 JOGUE EM 2 CELULARES AO VIVO • R$ 30 CADA
+          </span>
+          <h2 class="text-2xl sm:text-4xl font-bold text-stone-900 leading-tight">
+            Duelo do <span class="text-amber-600">Pastel</span> ou da <span class="text-red-600">Pizza</span>!
+          </h2>
+          <p class="mt-1.5 text-stone-600 text-xs sm:text-base max-w-2xl mx-auto">
+            Cada um no seu telefone: escolham os ingredientes juntos, cubram os lances ao vivo e vejam quem monta o prato campeão!
+          </p>
+
+          <!-- Seletor de Modo de Dispositivo: 2 Celulares Online vs Mesmo Celular Offline -->
+          <div class="mt-4 inline-flex p-1.5 rounded-2xl bg-stone-900/10 border border-amber-300/80 gap-1.5 max-w-full">
+            <button
+              type="button"
+              id="tab-device-online"
+              onclick="switchDeviceMode('online')"
+              class="px-3.5 sm:px-5 py-2 rounded-xl bg-red-600 text-white font-extrabold text-xs sm:text-sm shadow transition cursor-pointer"
+            >
+              📱 2 Celulares (Online)
+            </button>
+            <button
+              type="button"
+              id="tab-device-offline"
+              onclick="switchDeviceMode('offline')"
+              class="px-3.5 sm:px-5 py-2 rounded-xl bg-white/80 hover:bg-white text-stone-700 font-bold text-xs sm:text-sm transition cursor-pointer"
+            >
+              🤝 Mesmo Celular (Offline)
+            </button>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             PAINEL A: MULTIPLAYER ONLINE EM 2 CELULARES
+             =================================================================== -->
+        <div id="setup-online-panel" class="p-4 sm:p-8 space-y-6">
+
+          <!-- SUB-ETAPA A1: CRIAR SALA OU ENTRAR NA SALA -->
+          <div id="online-entry-view" class="space-y-6">
+            <!-- Seu Nome neste telefone -->
+            <div class="bg-amber-50/90 rounded-2xl p-4 sm:p-5 border-2 border-amber-300">
+              <label for="input-online-my-name" class="block text-xs font-extrabold uppercase tracking-wider text-amber-950 mb-1.5">
+                1. Seu nome neste telefone:
+              </label>
+              <div class="flex flex-col sm:flex-row gap-2.5">
+                <input
+                  id="input-online-my-name"
+                  type="text"
+                  maxlength="16"
+                  value="Eu"
+                  placeholder="Digite seu apelido (ex: Eu, Namorada)"
+                  class="flex-1 px-4 py-3 rounded-xl border-2 border-amber-400 focus:border-red-500 focus:ring-2 focus:ring-amber-200 outline-none font-bold text-stone-900 bg-white text-base"
+                />
+                <div class="flex gap-1.5 flex-wrap">
+                  <button type="button" onclick="setMyOnlineName('Eu')" class="px-3 py-2 rounded-xl bg-white hover:bg-amber-100 border border-amber-300 text-xs font-extrabold text-stone-700 cursor-pointer">😎 Eu</button>
+                  <button type="button" onclick="setMyOnlineName('Namorada')" class="px-3 py-2 rounded-xl bg-white hover:bg-amber-100 border border-amber-300 text-xs font-extrabold text-stone-700 cursor-pointer">😍 Namorada</button>
+                  <button type="button" onclick="setMyOnlineName('Amor')" class="px-3 py-2 rounded-xl bg-white hover:bg-amber-100 border border-amber-300 text-xs font-extrabold text-stone-700 cursor-pointer">❤️ Amor</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Erro inline de sala -->
+            <div id="online-entry-error" class="hidden p-3.5 rounded-2xl bg-red-100 border-2 border-red-400 text-red-900 text-xs sm:text-sm font-bold text-center"></div>
+
+            <!-- Duas Opções: Criar Sala ou Entrar com Código -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+              <!-- OPÇÃO A: CRIAR SALA (JOGADOR 1) -->
+              <div class="rounded-3xl p-5 border-3 border-teal-400 bg-p1-light/70 flex flex-col justify-between space-y-4">
+                <div>
+                  <span class="inline-block text-[11px] font-extrabold uppercase tracking-wider bg-teal-600 text-white px-3 py-0.5 rounded-full">
+                    Opção A • Anfitrião
+                  </span>
+                  <h3 class="font-display text-2xl font-bold text-teal-950 mt-1.5">
+                    Criar Nova Sala
+                  </h3>
+                  <p class="text-xs sm:text-sm text-stone-600 mt-1">
+                    Escolha o prato e gere um código de 4 dígitos para enviar no WhatsApp do seu par.
+                  </p>
+
+                  <!-- Escolha rápida Pastel ou Pizza -->
+                  <div class="grid grid-cols-2 gap-2.5 mt-4">
+                    <button
+                      type="button"
+                      id="online-create-pastel"
+                      onclick="selectGameMode('pastel')"
+                      class="p-3 rounded-2xl border-3 border-amber-500 bg-white shadow-xs text-center transition cursor-pointer"
+                    >
+                      <div class="text-3xl">🥟</div>
+                      <div class="font-display font-bold text-sm text-stone-900 mt-1">Pastel</div>
+                    </button>
+                    <button
+                      type="button"
+                      id="online-create-pizza"
+                      onclick="selectGameMode('pizza')"
+                      class="p-3 rounded-2xl border-2 border-stone-200 bg-white/70 hover:bg-white text-center transition cursor-pointer"
+                    >
+                      <div class="text-3xl">🍕</div>
+                      <div class="font-display font-bold text-sm text-stone-900 mt-1">Pizza</div>
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  id="btn-create-room"
+                  onclick="createOnlineRoom()"
+                  class="btn-3d w-full py-3.5 px-5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-display text-xl font-bold shadow-[0_4px_0_#115E59] border border-teal-300 cursor-pointer"
+                >
+                  ✨ Criar Sala (4 Dígitos)
+                </button>
+              </div>
+
+              <!-- OPÇÃO B: ENTRAR NA SALA (JOGADOR 2) -->
+              <div class="rounded-3xl p-5 border-3 border-rose-400 bg-p2-light/70 flex flex-col justify-between space-y-4">
+                <div>
+                  <span class="inline-block text-[11px] font-extrabold uppercase tracking-wider bg-rose-600 text-white px-3 py-0.5 rounded-full">
+                    Opção B • Convidado(a)
+                  </span>
+                  <h3 class="font-display text-2xl font-bold text-rose-950 mt-1.5">
+                    Entrar na Sala
+                  </h3>
+                  <p class="text-xs sm:text-sm text-stone-600 mt-1">
+                    Recebeu o código de 4 dígitos? Digite abaixo para entrar na mesma partida ao vivo!
+                  </p>
+
+                  <div class="mt-4">
+                    <label for="input-join-room-code" class="block text-xs font-extrabold uppercase text-rose-900 mb-1.5">
+                      Código da Sala (4 números):
+                    </label>
+                    <input
+                      id="input-join-room-code"
+                      type="text"
+                      inputmode="numeric"
+                      pattern="[0-9]*"
+                      maxlength="4"
+                      placeholder="Ex: 4829"
+                      class="w-full px-4 py-3 rounded-2xl border-2 border-rose-300 focus:border-rose-600 focus:ring-2 focus:ring-rose-200 outline-none font-display text-3xl font-bold tracking-[0.35em] text-center text-stone-900 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  id="btn-join-room"
+                  onclick="joinOnlineRoom()"
+                  class="btn-3d w-full py-3.5 px-5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-display text-xl font-bold shadow-[0_4px_0_#9F1239] border border-rose-300 cursor-pointer"
+                >
+                  📲 Entrar na Sala
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- SUB-ETAPA A2: SALA DE ESPERA COLABORATIVA (LOBBY AO VIVO) -->
+          <div id="online-lobby-view" class="hidden space-y-6 animate-pop">
+
+            <!-- Barra do Código da Sala + Copiar para WhatsApp -->
+            <div class="xadrez-bg rounded-3xl p-4 sm:p-6 border-3 border-amber-400 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="text-center sm:text-left">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider bg-red-600 text-white px-3 py-0.5 rounded-full">
+                  Código da Sala • Mande no WhatsApp
+                </span>
+                <div class="flex items-center justify-center sm:justify-start gap-3 mt-1.5">
+                  <span id="lobby-room-code-display" class="font-display text-4xl sm:text-5xl font-bold tracking-[0.2em] text-stone-900 bg-white px-4 py-1.5 rounded-2xl border-2 border-amber-400 shadow-xs">
+                    0000
+                  </span>
+                  <button
+                    type="button"
+                    onclick="copyRoomCode()"
+                    class="btn-3d px-4 py-3 rounded-2xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-extrabold text-xs sm:text-sm shadow-[0_3px_0_#B45309] border border-amber-200 cursor-pointer"
+                  >
+                    📋 Copiar Código
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-center sm:items-end gap-2">
+                <div id="lobby-mode-pill" class="bg-white px-3.5 py-1.5 rounded-xl border border-amber-300 font-bold text-xs sm:text-sm text-stone-800 shadow-xs">
+                  🥟 Modo: Pastel de Feira
+                </div>
+                <div id="lobby-host-mode-switch" class="flex gap-1.5">
+                  <button type="button" onclick="updateLobbyMode('pastel')" class="px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs border border-amber-300 cursor-pointer">
+                    🥟 Pastel
+                  </button>
+                  <button type="button" onclick="updateLobbyMode('pizza')" class="px-2.5 py-1 rounded-lg bg-red-100 hover:bg-red-200 text-red-950 font-bold text-xs border border-red-300 cursor-pointer">
+                    🍕 Pizza
+                  </button>
+                  <button type="button" onclick="leaveOnlineRoom()" class="px-2.5 py-1 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs cursor-pointer">
+                    🚪 Sair
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status dos 2 Jogadores Conectados -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="rounded-2xl p-4 border-2 border-teal-400 bg-p1-light flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="text-3xl">😎</span>
+                  <div>
+                    <div class="text-[11px] font-extrabold uppercase text-teal-800">Jogador 1 (Anfitrião)</div>
+                    <div id="lobby-p1-name" class="font-display text-xl font-bold text-teal-950">Eu</div>
+                  </div>
+                </div>
+                <span class="text-xs font-extrabold bg-teal-600 text-white px-3 py-1 rounded-full">
+                  ✅ Na sala
+                </span>
+              </div>
+
+              <div id="lobby-p2-card" class="rounded-2xl p-4 border-2 border-dashed border-rose-300 bg-p2-light/50 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="text-3xl">😍</span>
+                  <div>
+                    <div class="text-[11px] font-extrabold uppercase text-rose-800">Jogador 2 (Parceiro/a)</div>
+                    <div id="lobby-p2-name" class="font-display text-lg font-bold text-rose-900">Aguardando entrar...</div>
+                  </div>
+                </div>
+                <span id="lobby-p2-status" class="text-xs font-extrabold bg-amber-200 text-amber-950 px-3 py-1 rounded-full animate-pulse">
+                  ⏳ Esperando
+                </span>
+              </div>
+            </div>
+
+            <!-- Seleção Colaborativa de Ingredientes (Sincronizada ao Vivo) -->
+            <div>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                <div>
+                  <h3 class="text-lg sm:text-xl font-bold text-stone-900 flex items-center gap-2 flex-wrap">
+                    <span>🥗 Ingredientes do Leilão (Vocês dois podem marcar!):</span>
+                    <span id="lobby-selected-count" class="text-xs font-extrabold bg-stone-800 text-white px-2.5 py-0.5 rounded-full">
+                      16 selecionados
+                    </span>
+                  </h3>
+                  <p class="text-xs text-stone-500 mt-0.5">
+                    Toquem nos ingredientes no seu próprio celular para adicionar ou remover da disputa ao vivo.
+                  </p>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="applyLobbyPreset('all')" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs border border-amber-300 transition cursor-pointer">
+                    Todos
+                  </button>
+                  <button type="button" onclick="applyLobbyPreset('savory')" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition cursor-pointer">
+                    Só Salgados
+                  </button>
+                  <button type="button" onclick="applyLobbyPreset('classic')" class="px-3 py-1.5 rounded-xl bg-red-100 hover:bg-red-200 text-red-900 font-bold text-xs border border-red-300 transition cursor-pointer">
+                    Mix Clássico
+                  </button>
+                </div>
+              </div>
+
+              <div id="lobby-ingredients-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"></div>
+
+              <div id="lobby-min-warning" class="hidden mt-3 p-3 rounded-2xl bg-red-100 border-2 border-red-400 text-red-900 text-xs sm:text-sm font-bold text-center">
+                ⚠️ Mantenham pelo menos 4 ingredientes marcados para iniciar o leilão!
+              </div>
+            </div>
+
+            <!-- Rodapé do Lobby: Iniciar Leilão (Anfitrião) ou Aguardando (Convidado) -->
+            <div class="pt-2 text-center">
+              <div id="lobby-host-start-box">
+                <button
+                  type="button"
+                  id="btn-start-online-game"
+                  onclick="startOnlineMatch()"
+                  class="btn-3d w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-display text-2xl sm:text-3xl font-bold shadow-[0_5px_0_#991B1B] border-2 border-red-300 cursor-pointer"
+                >
+                  🔨 Começar Leilão!
+                </button>
+                <p id="lobby-waiting-partner-hint" class="text-xs font-bold text-amber-800 mt-2">
+                  💡 Aguardando o 2º celular entrar com o código acima para liberar o início!
+                </p>
+              </div>
+
+              <div id="lobby-guest-wait-box" class="hidden p-4 rounded-2xl bg-amber-100 border-2 border-amber-400 text-amber-950 font-bold text-sm sm:text-base">
+                ⏳ Você já está na sala! Aguardando <span id="lobby-host-name-span" class="underline">o anfitrião</span> clicar em <strong>Começar Leilão!</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===================================================================
+             PAINEL B: MODO OFFLINE NO MESMO CELULAR
+             =================================================================== -->
+        <div id="setup-offline-panel" class="hidden p-4 sm:p-8 space-y-7">
+          <!-- Preview Dinâmico do Prato Escolhido -->
+          <div id="setup-hero-art" class="max-w-[250px] sm:max-w-[290px] mx-auto animate-float"></div>
+
+          <!-- PASSO 1: ESCOLHA DO MODO (PASTEL OU PIZZA) -->
+          <div>
+            <h3 class="text-lg sm:text-xl font-bold text-stone-900 mb-3 flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-amber-400 text-stone-950 text-sm font-extrabold inline-flex items-center justify-center">1</span>
+              Escolha o prato da disputa:
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
+              <button
+                type="button"
+                id="mode-card-pastel"
+                onclick="selectGameMode('pastel')"
+                class="text-left p-4 sm:p-5 rounded-3xl border-4 border-amber-500 bg-amber-50 shadow-md transition-all flex items-center gap-4 cursor-pointer relative overflow-hidden"
+              >
+                <div class="w-16 h-16 rounded-2xl bg-amber-400/30 border-2 border-amber-400 flex items-center justify-center text-4xl shrink-0">
+                  🥟
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-display text-xl sm:text-2xl font-bold text-stone-900">Duelo do Pastel</span>
+                    <span id="mode-check-pastel" class="bg-amber-500 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full">✓ Selecionado</span>
+                  </div>
+                  <p class="text-xs sm:text-sm text-stone-600 mt-0.5">
+                    Feira livre! Pastel dourado frito na hora no guardanapo xadrez.
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                id="mode-card-pizza"
+                onclick="selectGameMode('pizza')"
+                class="text-left p-4 sm:p-5 rounded-3xl border-3 border-stone-200 bg-white hover:border-red-300 hover:bg-red-50/40 transition-all flex items-center gap-4 cursor-pointer relative overflow-hidden"
+              >
+                <div class="w-16 h-16 rounded-2xl bg-red-100 border-2 border-red-300 flex items-center justify-center text-4xl shrink-0">
+                  🍕
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-display text-xl sm:text-2xl font-bold text-stone-900">Duelo da Pizza</span>
+                    <span id="mode-check-pizza" class="hidden bg-red-600 text-white text-xs font-extrabold px-2.5 py-0.5 rounded-full">✓ Selecionado</span>
+                  </div>
+                  <p class="text-xs sm:text-sm text-stone-600 mt-0.5">
+                    Forno a lenha! Pizza artesanal na tábua de madeira com borda dourada.
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- PASSO 2: NOMES DOS JOGADORES -->
+          <div>
+            <h3 class="text-lg sm:text-xl font-bold text-stone-900 mb-3 flex items-center gap-2">
+              <span class="w-7 h-7 rounded-full bg-amber-400 text-stone-950 text-sm font-extrabold inline-flex items-center justify-center">2</span>
+              Quem vai disputar? (R$ 30,00 cada)
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="bg-p1-light rounded-2xl p-4 border-2 border-teal-400 shadow-xs">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wider text-teal-900 bg-teal-200 px-2.5 py-0.5 rounded-full">
+                    Jogador 1 • Azul Petróleo
+                  </span>
+                  <span class="text-teal-800 font-extrabold text-sm">💰 R$ 30</span>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-2xl select-none">😎</span>
+                  <input
+                    id="input-p1-name"
+                    type="text"
+                    maxlength="16"
+                    value="Eu"
+                    placeholder="Nome do Jogador 1"
+                    class="w-full px-3.5 py-2.5 rounded-xl border-2 border-teal-300 focus:border-teal-600 focus:ring-2 focus:ring-teal-200 outline-none font-bold text-stone-900 bg-white text-base"
+                  />
+                </div>
+              </div>
+
+              <div class="bg-p2-light rounded-2xl p-4 border-2 border-rose-400 shadow-xs">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-extrabold uppercase tracking-wider text-rose-900 bg-rose-200 px-2.5 py-0.5 rounded-full">
+                    Jogador 2 • Coral
+                  </span>
+                  <span class="text-rose-800 font-extrabold text-sm">💰 R$ 30</span>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-2xl select-none">😍</span>
+                  <input
+                    id="input-p2-name"
+                    type="text"
+                    maxlength="16"
+                    value="Namorada"
+                    placeholder="Nome do Jogador 2"
+                    class="w-full px-3.5 py-2.5 rounded-xl border-2 border-rose-300 focus:border-rose-600 focus:ring-2 focus:ring-rose-200 outline-none font-bold text-stone-900 bg-white text-base"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASSO 3: SELETOR INTERATIVO DE INGREDIENTES -->
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <h3 class="text-lg sm:text-xl font-bold text-stone-900 flex items-center gap-2">
+                <span class="w-7 h-7 rounded-full bg-amber-400 text-stone-950 text-sm font-extrabold inline-flex items-center justify-center">3</span>
+                Selecione os ingredientes do leilão:
+                <span id="selected-count-badge" class="text-xs font-extrabold bg-stone-800 text-white px-2.5 py-0.5 rounded-full">
+                  16 selecionados
+                </span>
+              </h3>
+
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="applyIngredientPreset('all')" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold text-xs border border-amber-300 transition cursor-pointer">
+                  Selecionar Todos
+                </button>
+                <button type="button" onclick="applyIngredientPreset('savory')" class="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs border border-stone-300 transition cursor-pointer">
+                  Só Salgados
+                </button>
+                <button type="button" onclick="applyIngredientPreset('classic')" class="px-3 py-1.5 rounded-xl bg-red-100 hover:bg-red-200 text-red-900 font-bold text-xs border border-red-300 transition cursor-pointer">
+                  Mix Clássico
+                </button>
+              </div>
+            </div>
+
+            <div id="setup-ingredients-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"></div>
+
+            <div id="setup-min-warning" class="hidden mt-3 p-3 rounded-2xl bg-red-100 border-2 border-red-400 text-red-900 text-xs sm:text-sm font-bold text-center">
+              ⚠️ Selecione pelo menos 4 ingredientes para começar o leilão!
+            </div>
+          </div>
+
+          <div class="pt-2 text-center">
+            <button
+              type="button"
+              onclick="startOfflineGame()"
+              id="btn-start-game"
+              class="btn-3d w-full sm:w-auto px-10 py-4 rounded-2xl bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-display text-2xl sm:text-3xl font-bold shadow-[0_5px_0_#991B1B] border-2 border-red-300 cursor-pointer"
+            >
+              🔨 Começar o Leilão Offline!
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         TELA 2: ARENA DO LEILÃO ABERTO (2 CELULARES AO VIVO OU OFFLINE)
+         ========================================================================= -->
+    <section id="screen-game" class="hidden space-y-4 sm:space-y-5">
+
+      <!-- ABAS DE VISUALIZAÇÃO DE PRATO NO MODO 2 CELULARES -->
+      <div id="online-dish-tabs" class="hidden bg-white/95 rounded-2xl p-2 border-2 border-amber-300 shadow-sm flex items-center justify-between gap-1.5">
+        <button
+          type="button"
+          id="tab-view-mine"
+          onclick="setDishViewMode('mine')"
+          class="flex-1 py-2 px-2.5 rounded-xl bg-amber-400 text-stone-950 font-extrabold text-xs sm:text-sm shadow-xs transition cursor-pointer"
+        >
+          🍽️ Meu Prato
+        </button>
+        <button
+          type="button"
+          id="tab-view-partner"
+          onclick="setDishViewMode('partner')"
+          class="flex-1 py-2 px-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs sm:text-sm transition cursor-pointer"
+        >
+          👀 Prato do Parceiro
+        </button>
+        <button
+          type="button"
+          id="tab-view-both"
+          onclick="setDishViewMode('both')"
+          class="flex-1 py-2 px-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs sm:text-sm transition cursor-pointer"
+        >
+          ⚖️ Lado a Lado
+        </button>
+      </div>
+
+      <!-- VISÃO FOCADA EM UM PRATO (USADA NO CELULAR ONLINE PARA VER SEU PRATO OU DO PARCEIRO EM DESTAQUE) -->
+      <div id="online-single-dish-spotlight" class="hidden bg-white rounded-3xl p-4 border-3 border-amber-400 shadow-md">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="spotlight-avatar" class="text-2xl">😎</span>
+            <div class="min-w-0">
+              <div id="spotlight-role-label" class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+                Seu Prato Montado ao Vivo
+              </div>
+              <h3 id="spotlight-name" class="font-display text-xl sm:text-2xl font-bold text-stone-900 truncate">Eu</h3>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <div class="text-right bg-stone-100 px-3 py-1.5 rounded-xl border border-stone-200">
+              <div class="text-[9px] uppercase font-bold text-stone-500" id="spotlight-other-label">Parceiro</div>
+              <div class="font-display text-sm sm:text-base font-bold text-stone-700" id="spotlight-other-money">R$ 30</div>
+            </div>
+            <div class="text-right bg-amber-100 px-3.5 py-1.5 rounded-xl border border-amber-300">
+              <div class="text-[9px] uppercase font-bold text-amber-900">Saldo</div>
+              <div id="spotlight-money" class="font-display text-xl sm:text-2xl font-bold text-stone-900 leading-none">R$ 30</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="spotlight-dish-svg" class="max-w-[260px] sm:max-w-[300px] mx-auto"></div>
+        <div id="spotlight-chips" class="mt-2 flex flex-wrap justify-center gap-1 min-h-[24px]"></div>
+      </div>
+
+      <!-- PAINÉIS LADO A LADO DOS DOIS JOGADORES (COM ILUSTRAÇÃO AO VIVO) -->
+      <div id="hud-both-grid" class="grid grid-cols-2 gap-3 sm:gap-5">
+        <!-- Painel Jogador 1 (Azul Petróleo) -->
+        <div id="hud-card-p1" class="bg-white rounded-3xl p-3 sm:p-4 border-3 border-teal-400 shadow-md transition-all relative">
+          <div class="flex items-start justify-between gap-1">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base sm:text-lg">😎</span>
+                <h3 id="hud-p1-name" class="font-display font-bold text-base sm:text-xl text-teal-950 truncate">Eu</h3>
+              </div>
+              <span id="hud-p1-turn-tag" class="inline-block text-[10px] sm:text-xs font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full mt-0.5 bg-teal-600 text-white">
+                Sua vez!
+              </span>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-[10px] uppercase font-bold text-stone-400">Saldo</div>
+              <div id="hud-p1-money" class="font-display text-xl sm:text-3xl font-bold text-teal-700 leading-none">
+                R$ 30
+              </div>
+            </div>
+          </div>
+
+          <div id="hud-p1-dish" class="mt-2 max-w-[175px] sm:max-w-[215px] mx-auto cursor-pointer" onclick="openDishModal(0)" title="Toque para ampliar o prato"></div>
+
+          <div id="hud-p1-chips" class="mt-1.5 flex flex-wrap justify-center gap-1 min-h-[24px]">
+            <span class="text-[11px] text-stone-400 italic">Nenhum ingrediente ainda</span>
+          </div>
+        </div>
+
+        <!-- Painel Jogador 2 (Coral) -->
+        <div id="hud-card-p2" class="bg-white rounded-3xl p-3 sm:p-4 border-3 border-rose-300 shadow-md transition-all relative">
+          <div class="flex items-start justify-between gap-1">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base sm:text-lg">😍</span>
+                <h3 id="hud-p2-name" class="font-display font-bold text-base sm:text-xl text-rose-950 truncate">Namorada</h3>
+              </div>
+              <span id="hud-p2-turn-tag" class="inline-block text-[10px] sm:text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full mt-0.5 bg-stone-100 text-stone-500">
+                Aguardando
+              </span>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-[10px] uppercase font-bold text-stone-400">Saldo</div>
+              <div id="hud-p2-money" class="font-display text-xl sm:text-3xl font-bold text-rose-600 leading-none">
+                R$ 30
+              </div>
+            </div>
+          </div>
+
+          <div id="hud-p2-dish" class="mt-2 max-w-[175px] sm:max-w-[215px] mx-auto cursor-pointer" onclick="openDishModal(1)" title="Toque para ampliar o prato"></div>
+
+          <div id="hud-p2-chips" class="mt-1.5 flex flex-wrap justify-center gap-1 min-h-[24px]">
+            <span class="text-[11px] text-stone-400 italic">Nenhum ingrediente ainda</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PALCO CENTRAL DO LEILÃO ABERTO -->
+      <div class="bg-white rounded-3xl shadow-xl border-4 border-amber-400 overflow-hidden">
+
+        <!-- Cabeçalho do Ingrediente Atual -->
+        <div class="xadrez-bg p-4 sm:p-6 border-b-2 border-amber-200">
+          <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <div id="auction-item-icon" class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white shadow-md border-3 border-amber-400 flex items-center justify-center shrink-0 p-3 text-5xl sm:text-6xl select-none">
+              🥩
+            </div>
+
+            <div class="text-center sm:text-left flex-1">
+              <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
+                <span class="bg-red-600 text-white text-xs font-extrabold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-xs">
+                  🔨 Em Disputa
+                </span>
+                <span id="auction-item-category" class="bg-amber-200 text-amber-950 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+                  Salgado
+                </span>
+                <span id="auction-item-points" class="bg-white text-amber-700 border border-amber-300 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+                  ⭐ Sabor: +14 pts
+                </span>
+                <span id="auction-deck-remaining" class="bg-stone-800 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+                  Fila: 15
+                </span>
+              </div>
+
+              <h2 id="auction-item-name" class="text-2xl sm:text-4xl font-bold text-stone-900 leading-tight">
+                Carne Moída Temperada
+              </h2>
+              <p id="auction-item-desc" class="text-stone-600 text-xs sm:text-sm mt-1">
+                Refogada no alho, cebola e cheiro-verde fresquinho.
+              </p>
+              <p id="auction-item-hint" class="text-xs font-bold text-amber-900 mt-1.5 bg-amber-100/90 inline-block px-2.5 py-1 rounded-lg">
+                💡 Combina com: Ovo Cozido & Azeitona
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ÁREA DE LANCES ABERTOS -->
+        <div class="p-4 sm:p-6">
+
+          <!-- BANNER DE STATUS DO LANCE ATUAL -->
+          <div id="bid-status-banner" class="rounded-2xl p-4 border-2 border-stone-200 bg-stone-50 text-center mb-4 transition-all">
+            <div id="bid-status-kicker" class="text-xs font-extrabold uppercase tracking-wider text-stone-500">
+              Abertura do Leilão
+            </div>
+            <div id="bid-status-headline" class="font-display text-2xl sm:text-3xl font-bold text-stone-900 mt-0.5">
+              Nenhum lance ainda — R$ 0
+            </div>
+            <div id="bid-status-subtext" class="text-xs sm:text-sm font-semibold text-stone-600 mt-1">
+              Vez de Eu abrir o leilão ou passar!
+            </div>
+          </div>
+
+          <!-- HISTÓRICO RÁPIDO DA DISPUTA DESTE INGREDIENTE -->
+          <div id="bid-history-wrapper" class="hidden mb-4">
+            <div class="text-[11px] font-extrabold uppercase tracking-wider text-stone-400 mb-1.5 text-center">
+              Histórico desta disputa:
+            </div>
+            <div id="bid-history-trail" class="flex flex-wrap items-center justify-center gap-1.5"></div>
+          </div>
+
+          <!-- PAINEL DE ESPERA DO OPONENTE (QUANDO NO MODO 2 CELULARES NÃO É A SUA VEZ) -->
+          <div id="opponent-waiting-area" class="hidden animate-pop">
+            <div class="rounded-3xl p-6 border-3 border-amber-300 bg-amber-50/90 text-center space-y-2">
+              <div class="text-4xl animate-bounce">⏳</div>
+              <h3 id="waiting-opponent-headline" class="font-display text-2xl sm:text-3xl font-bold text-stone-900">
+                Aguardando Namorada dar o lance ou cobrir...
+              </h3>
+              <p id="waiting-opponent-sub" class="text-xs sm:text-sm font-semibold text-stone-600">
+                Assim que ela jogar no celular dela, sua tela atualiza automaticamente!
+              </p>
+            </div>
+          </div>
+
+          <!-- CONTROLES INTERATIVOS DO JOGADOR DA VEZ -->
+          <div id="bidding-controls-area" class="animate-pop">
+            <div id="active-turn-card" class="rounded-3xl p-4 sm:p-5 border-3 border-teal-400 bg-p1-light/70 transition-all">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-200/80">
+                <div class="flex items-center gap-2">
+                  <span id="turn-player-avatar" class="text-2xl">😎</span>
+                  <div>
+                    <span id="turn-player-kicker" class="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 block leading-none">
+                      Sua vez! Cubra o lance ou passe
+                    </span>
+                    <h3 id="turn-player-name" class="font-display text-2xl sm:text-3xl font-bold text-teal-900 leading-tight">
+                      Eu
+                    </h3>
+                  </div>
+                </div>
+                <div class="bg-white px-3.5 py-2 rounded-2xl border border-stone-200 shadow-xs flex items-center justify-between sm:justify-end gap-2">
+                  <span class="text-xs font-bold text-stone-500">Seu saldo:</span>
+                  <span id="turn-player-balance" class="font-display text-xl sm:text-2xl font-bold text-stone-900">R$ 30</span>
+                </div>
+              </div>
+
+              <!-- BOTÕES RÁPIDOS DE LANCE / COBERTURA -->
+              <div id="quick-bid-buttons" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4"></div>
+
+              <!-- SELETOR FINO DE VALOR (SLIDER + STEPPER) -->
+              <div class="mt-4 bg-white rounded-2xl p-3.5 border border-stone-200">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <span class="text-xs font-extrabold uppercase text-stone-500">Escolher valor exato:</span>
+                  <span id="custom-bid-preview" class="font-display text-xl font-bold text-amber-600">R$ 1</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onclick="stepCustomBid(-1)"
+                    class="btn-3d w-11 h-11 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-xl border border-stone-300 shrink-0 cursor-pointer"
+                  >
+                    -
+                  </button>
+                  <input
+                    id="custom-bid-slider"
+                    type="range"
+                    min="1"
+                    max="30"
+                    value="1"
+                    oninput="updateCustomBidSlider(parseInt(this.value, 10))"
+                    class="w-full"
+                  />
+                  <button
+                    type="button"
+                    onclick="stepCustomBid(1)"
+                    class="btn-3d w-11 h-11 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-extrabold text-xl border border-stone-300 shrink-0 cursor-pointer"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-submit-custom-bid"
+                    onclick="submitCustomBid()"
+                    class="btn-3d px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-extrabold text-xs sm:text-sm shadow-[0_3px_0_#B45309] shrink-0 cursor-pointer"
+                  >
+                    Apostar
+                  </button>
+                </div>
+              </div>
+
+              <!-- BOTÃO DE PASSAR OU DESISTIR / DEIXAR LEVAR -->
+              <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                <button
+                  type="button"
+                  id="btn-fold-or-pass"
+                  onclick="handlePassOrFold()"
+                  class="btn-3d w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-stone-800 hover:bg-stone-900 text-white font-display text-lg sm:text-xl font-bold shadow-[0_4px_0_#1C1917] cursor-pointer"
+                >
+                  ⏭️ Passar (Não quero)
+                </button>
+
+                <button
+                  type="button"
+                  id="btn-finish-early"
+                  onclick="finishMatchNow()"
+                  class="hidden btn-3d w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-amber-200 hover:bg-amber-300 text-stone-900 font-bold text-sm border border-amber-400 cursor-pointer"
+                >
+                  🏁 Encerrar e Avaliar Agora
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TELA DE MARTELO BATIDO (VENDIDO / PASSADO) -->
+          <div id="hammer-result-area" class="hidden animate-pop text-center py-3">
+            <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-950 font-extrabold text-xs sm:text-sm px-4 py-1.5 rounded-full border border-amber-300 mb-3">
+              <span class="animate-hammer inline-block text-lg">🔨</span> DOU-LHE UMA, DOU-LHE DUAS...
+            </div>
+
+            <div id="hammer-outcome-box" class="p-5 rounded-3xl bg-green-100 border-3 border-green-400 text-green-950 max-w-xl mx-auto shadow-sm">
+              <h3 id="hammer-outcome-title" class="font-display text-2xl sm:text-3xl font-bold">
+                🎉 Eu levou Carne Moída por R$ 5!
+              </h3>
+              <p id="hammer-outcome-desc" class="text-xs sm:text-sm font-semibold mt-1 opacity-90">
+                O ingrediente já foi colocado em cima do prato!
+              </p>
+            </div>
+
+            <div class="mt-5">
+              <button
+                type="button"
+                id="btn-next-item"
+                onclick="advanceToNextItem()"
+                class="btn-3d px-9 py-4 rounded-2xl bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-display text-xl sm:text-2xl font-bold shadow-[0_4px_0_#991B1B] border-2 border-red-300 cursor-pointer"
+              >
+                Próximo Ingrediente ➡️
+              </button>
+              <p id="auto-advance-hint" class="hidden text-xs font-bold text-stone-500 mt-2">
+                Avançando automaticamente nos dois celulares...
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         TELA 3: VEREDITO FINAL E COMPARAÇÃO DOS PRATOS (NOS DOIS CELULARES)
+         ========================================================================= -->
+    <section id="screen-final" class="hidden animate-pop space-y-6">
+      <div class="bg-white rounded-3xl shadow-xl border-4 border-amber-400 overflow-hidden">
+
+        <div class="xadrez-bg p-6 sm:p-8 text-center border-b-2 border-amber-200">
+          <span id="final-mode-pill" class="inline-flex items-center gap-2 bg-amber-400 text-stone-950 font-extrabold text-xs sm:text-sm px-4 py-1.5 rounded-full shadow mb-2">
+            🏆 VEREDITO DO MESTRE PASTELEIRO DA FEIRA
+          </span>
+          <h2 id="final-winner-title" class="text-3xl sm:text-5xl font-bold text-stone-900 leading-tight">
+            Eu venceu o Duelo!
+          </h2>
+          <p id="final-winner-subtitle" class="text-stone-700 font-semibold text-sm sm:text-base mt-1">
+            Vitória deliciosa na disputa de sabores!
+          </p>
+        </div>
+
+        <div class="p-4 sm:p-7">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Coluna Final Jogador 1 -->
+            <div id="final-card-p1" class="rounded-3xl p-5 border-3 border-teal-400 bg-p1-light/60 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">😎</span>
+                    <div>
+                      <h3 id="final-p1-name" class="font-display text-2xl font-bold text-teal-950 leading-none">Eu</h3>
+                      <span id="final-p1-badge" class="inline-block text-xs font-extrabold px-2.5 py-0.5 rounded-full mt-1 bg-teal-200 text-teal-950">
+                        Prato Final
+                      </span>
+                    </div>
+                  </div>
+                  <div class="text-right bg-white px-3.5 py-2 rounded-2xl border-2 border-teal-300 shadow-xs">
+                    <div class="text-[10px] font-bold uppercase text-stone-400">Pontuação</div>
+                    <div id="final-p1-score" class="font-display text-2xl sm:text-3xl font-bold text-teal-700 leading-none">0 pts</div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3 border-2 border-teal-200 shadow-inner">
+                  <div id="final-p1-dish" class="max-w-[310px] mx-auto"></div>
+                  <p class="text-center text-[11px] text-stone-400 font-semibold mt-1">
+                    Toque ou passe o mouse nos ingredientes abaixo para destacar no prato
+                  </p>
+                </div>
+
+                <div class="mt-4">
+                  <h4 class="text-xs font-extrabold uppercase tracking-wider text-stone-500 mb-2">
+                    Ingredientes Arrematados:
+                  </h4>
+                  <div id="final-p1-ingredients" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <div class="mt-4">
+                  <h4 class="text-xs font-extrabold uppercase tracking-wider text-stone-500 mb-2">
+                    Análise Gastronômica:
+                  </h4>
+                  <div id="final-p1-notes" class="space-y-1.5"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coluna Final Jogador 2 -->
+            <div id="final-card-p2" class="rounded-3xl p-5 border-3 border-rose-400 bg-p2-light/60 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl">😍</span>
+                    <div>
+                      <h3 id="final-p2-name" class="font-display text-2xl font-bold text-rose-950 leading-none">Namorada</h3>
+                      <span id="final-p2-badge" class="inline-block text-xs font-extrabold px-2.5 py-0.5 rounded-full mt-1 bg-rose-200 text-rose-950">
+                        Prato Final
+                      </span>
+                    </div>
+                  </div>
+                  <div class="text-right bg-white px-3.5 py-2 rounded-2xl border-2 border-rose-300 shadow-xs">
+                    <div class="text-[10px] font-bold uppercase text-stone-400">Pontuação</div>
+                    <div id="final-p2-score" class="font-display text-2xl sm:text-3xl font-bold text-rose-600 leading-none">0 pts</div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-3 border-2 border-rose-200 shadow-inner">
+                  <div id="final-p2-dish" class="max-w-[310px] mx-auto"></div>
+                  <p class="text-center text-[11px] text-stone-400 font-semibold mt-1">
+                    Toque ou passe o mouse nos ingredientes abaixo para destacar no prato
+                  </p>
+                </div>
+
+                <div class="mt-4">
+                  <h4 class="text-xs font-extrabold uppercase tracking-wider text-stone-500 mb-2">
+                    Ingredientes Arrematados:
+                  </h4>
+                  <div id="final-p2-ingredients" class="flex flex-wrap gap-1.5"></div>
+                </div>
+
+                <div class="mt-4">
+                  <h4 class="text-xs font-extrabold uppercase tracking-wider text-stone-500 mb-2">
+                    Análise Gastronômica:
+                  </h4>
+                  <div id="final-p2-notes" class="space-y-1.5"></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Comentário Personalizado do Mestre -->
+          <div class="mt-6 bg-amber-100/90 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4">
+            <div id="final-chef-avatar" class="w-14 h-14 rounded-2xl bg-amber-400 border-2 border-white shadow flex items-center justify-center text-3xl shrink-0">
+              👨‍🍳
+            </div>
+            <div class="text-center sm:text-left">
+              <div id="final-chef-title" class="text-xs font-extrabold uppercase tracking-wider text-amber-950">
+                Palavra do Mestre Pasteleiro da Feira
+              </div>
+              <p id="final-chef-comment" class="text-sm sm:text-base font-semibold text-stone-800 mt-0.5">
+                "Que disputa sensacional!"
+              </p>
+            </div>
+          </div>
+
+          <!-- Botões Finais -->
+          <div class="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              type="button"
+              onclick="rematchSameSetup()"
+              class="btn-3d w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-display text-xl sm:text-2xl font-bold shadow-[0_4px_0_#991B1B] border-2 border-red-300 cursor-pointer"
+            >
+              🔄 Jogar Novamente
+            </button>
+            <button
+              type="button"
+              onclick="backToSetup()"
+              class="btn-3d w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-amber-200 hover:bg-amber-300 text-stone-950 font-display text-lg sm:text-xl font-bold shadow-[0_4px_0_#D97706] border-2 border-amber-300 cursor-pointer"
+            >
+              ⚙️ Voltar ao Início
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL DE REGRAS -->
+  <div id="modal-rules" class="hidden fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full border-4 border-amber-400 shadow-2xl overflow-hidden animate-pop">
+      <div class="xadrez-bg px-5 py-4 border-b-2 border-amber-200 flex items-center justify-between">
+        <h3 class="font-display text-2xl font-bold text-stone-900">📜 Regras do Leilão Aberto</h3>
+        <button onclick="toggleRulesModal(false)" class="w-9 h-9 rounded-xl bg-red-600 text-white font-extrabold hover:bg-red-700 cursor-pointer">✕</button>
+      </div>
+      <div class="p-5 space-y-3 text-sm text-stone-700 max-h-[75vh] overflow-y-auto">
+        <div class="flex gap-3">
+          <span class="text-xl">🥟🍕</span>
+          <p><strong>Pastel ou Pizza:</strong> Antes de começar, escolham o prato e marquem quais ingredientes entrarão no leilão.</p>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-xl">💰</span>
+          <p><strong>R$ 30,00 para cada:</strong> Os dois começam com R$ 30,00. Quem abre o leilão alterna a cada ingrediente para ser justo.</p>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-xl">📢</span>
+          <p><strong>Cobrir o Lance (Leilão Aberto):</strong> Quando um dá um lance (ex: R$ 3), o outro vê na hora e pode cobrir com pelo menos +R$ 1 (R$ 4 ou mais) — ou clicar em <strong>Desistir / Deixar levar</strong>.</p>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-xl">🔨</span>
+          <p><strong>Bater o Martelo:</strong> Vocês podem cobrir o lance um do outro quantas vezes quiserem! Quando alguém desiste (ou não tem saldo suficiente para cobrir), o maior lance leva o ingrediente e paga o valor apostado.</p>
+        </div>
+        <div class="flex gap-3">
+          <span class="text-xl">👨‍🍳</span>
+          <p><strong>Julgamento Final:</strong> Quando o saldo dos dois zerar, o Mestre Pasteleiro ou Mestre Pizzaiolo avalia o prato pronto, dando bônus por combos clássicos e penalidades engraçadas por gororobas!</p>
+        </div>
+      </div>
+      <div class="p-4 bg-stone-50 border-t border-stone-200 text-center">
+        <button onclick="toggleRulesModal(false)" class="btn-3d px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-stone-950 font-extrabold text-sm shadow-[0_3px_0_#B45309] cursor-pointer">
+          Entendi, vamos disputar!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE AMPLIAÇÃO DO PRATO DURANTE O JOGO -->
+  <div id="modal-dish" class="hidden fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full border-4 border-amber-400 shadow-2xl overflow-hidden animate-pop">
+      <div class="xadrez-bg px-5 py-4 border-b-2 border-amber-200 flex items-center justify-between">
+        <h3 id="dish-modal-title" class="font-display text-2xl font-bold text-stone-900">Prato de Eu</h3>
+        <button onclick="closeDishModal()" class="w-9 h-9 rounded-xl bg-red-600 text-white font-extrabold hover:bg-red-700 cursor-pointer">✕</button>
+      </div>
+      <div class="p-5 text-center">
+        <div id="dish-modal-art" class="max-w-[290px] mx-auto"></div>
+        <div id="dish-modal-list" class="mt-4 flex flex-wrap justify-center gap-1.5"></div>
+      </div>
+      <div class="p-4 bg-stone-50 border-t border-stone-200 text-center">
+        <button onclick="closeDishModal()" class="btn-3d px-6 py-2 rounded-xl bg-stone-800 text-white font-bold text-sm cursor-pointer">
+          Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. BANCO DE DADOS DOS 16 INGREDIENTES
+       ========================================================================= */
+    const INGREDIENTS_DB = [
+      {
+        id: 'carne_moida',
+        name: 'Carne Moída Temperada',
+        shortName: 'Carne Moída',
+        emoji: '🥩',
+        category: 'Salgado',
+        points: 14,
+        desc: 'Refogada no alho, cebola e cheiro-verde fresquinho.',
+        hint: 'Clássico com Ovo Cozido & Azeitonas',
+        classic: true
+      },
+      {
+        id: 'mussarela',
+        name: 'Queijo Mussarela Derretido',
+        shortName: 'Mussarela',
+        emoji: '🧀',
+        category: 'Salgado',
+        points: 14,
+        desc: 'Fios generosos de mussarela derretida que esticam a cada mordida.',
+        hint: 'Combina com tudo — inclusive Goiabada!',
+        classic: true
+      },
+      {
+        id: 'frango',
+        name: 'Frango Desfiado',
+        shortName: 'Frango',
+        emoji: '🍗',
+        category: 'Salgado',
+        points: 13,
+        desc: 'Peito de frango bem temperado e suculento.',
+        hint: 'Par perfeito com Catupiry Cremoso',
+        classic: true
+      },
+      {
+        id: 'catupiry',
+        name: 'Catupiry Cremoso',
+        shortName: 'Catupiry',
+        emoji: '🥛',
+        category: 'Salgado',
+        points: 14,
+        desc: 'Espirais generosas do legítimo requeijão cremoso.',
+        hint: 'Brilha com Frango, Bacon ou Goiabada',
+        classic: true
+      },
+      {
+        id: 'bacon',
+        name: 'Bacon Crocante',
+        shortName: 'Bacon',
+        emoji: '🥓',
+        category: 'Salgado',
+        points: 14,
+        desc: 'Tiras defumadas fritas até ficarem super crocantes.',
+        hint: 'Explosão de sabor com Cheddar ou Calabresa',
+        classic: true
+      },
+      {
+        id: 'calabresa',
+        name: 'Calabresa Fatiada com Cebola',
+        shortName: 'Calabresa',
+        emoji: '🍕',
+        category: 'Salgado',
+        points: 13,
+        desc: 'Rodelas de calabresa defumada acompanhadas de anéis de cebola.',
+        hint: 'Perfeita com Mussarela, Bacon ou Pimenta',
+        classic: true
+      },
+      {
+        id: 'ovo',
+        name: 'Ovo Cozido Fatiado',
+        shortName: 'Ovo Cozido',
+        emoji: '🥚',
+        category: 'Salgado',
+        points: 10,
+        desc: 'Fatias de ovo cozido no ponto certo para recheios especiais.',
+        hint: 'Essencial no Clássico de Feira e na Portuguesa',
+        classic: true
+      },
+      {
+        id: 'azeitona',
+        name: 'Azeitonas Verdes e Pretas',
+        shortName: 'Azeitonas',
+        emoji: '🫒',
+        category: 'Salgado',
+        points: 9,
+        desc: 'Mix de azeitonas verdes e pretas para dar aquele toque marcante.',
+        hint: 'Vai muito bem com Carne, Calabresa ou Tomate',
+        classic: true
+      },
+      {
+        id: 'milho_ervilha',
+        name: 'Milho & Ervilha',
+        shortName: 'Milho & Ervilha',
+        emoji: '🌽',
+        category: 'Salgado',
+        points: 9,
+        desc: 'Grãos docinhos de milho verde e ervilhas frescas.',
+        hint: 'Ótimo com Frango, Palmito ou Catupiry',
+        classic: false
+      },
+      {
+        id: 'palmito',
+        name: 'Palmito em Rodelas',
+        shortName: 'Palmito',
+        emoji: '🎋',
+        category: 'Salgado',
+        points: 12,
+        desc: 'Rodelas macias de palmito pupunha temperadas na manteiga.',
+        hint: 'Delícia com Mussarela, Catupiry ou Tomate',
+        classic: false
+      },
+      {
+        id: 'cheddar',
+        name: 'Cheddar Cremoso',
+        shortName: 'Cheddar',
+        emoji: '🟧',
+        category: 'Salgado',
+        points: 13,
+        desc: 'Cheddar alaranjado cremoso de sabor intenso.',
+        hint: 'Irresistível com Bacon Crocante ou Carne Moída',
+        classic: false
+      },
+      {
+        id: 'tomate_oregano',
+        name: 'Tomate Fresco & Orégano',
+        shortName: 'Tomate & Orégano',
+        emoji: '🍅',
+        category: 'Salgado',
+        points: 10,
+        desc: 'Fatias suculentas de tomate maduro polvilhadas com orégano.',
+        hint: 'Cria o sabor Margherita / Pizza com Mussarela',
+        classic: true
+      },
+      {
+        id: 'pimenta',
+        name: 'Pimenta Malagueta',
+        shortName: 'Pimenta',
+        emoji: '🌶️',
+        category: 'Salgado',
+        points: 10,
+        desc: 'Pimentinhas vermelhas ardidas para quem gosta de emoção!',
+        hint: 'Dá fogo extra em Carne Moída ou Calabresa',
+        classic: false
+      },
+      {
+        id: 'chocolate',
+        name: 'Chocolate ao Leite Derretido',
+        shortName: 'Chocolate',
+        emoji: '🍫',
+        category: 'Doce',
+        points: 14,
+        desc: 'Calda brilhante de chocolate ao leite derretido.',
+        hint: 'Perfeito com Banana com Canela (cuidado com carnes!)',
+        classic: true
+      },
+      {
+        id: 'banana',
+        name: 'Banana com Canela',
+        shortName: 'Banana & Canela',
+        emoji: '🍌',
+        category: 'Doce',
+        points: 12,
+        desc: 'Rodelas doces de banana caramelizada polvilhadas com canela.',
+        hint: 'Divino com Chocolate ou Mussarela',
+        classic: false
+      },
+      {
+        id: 'goiabada',
+        name: 'Goiabada Cremosa',
+        shortName: 'Goiabada',
+        emoji: '🟥',
+        category: 'Doce',
+        points: 13,
+        desc: 'Cubos e calda rubi de goiabada cascão derretendo.',
+        hint: 'Faz o lendário Romeu & Julieta com Queijo!',
+        classic: false
+      }
+    ];
+
+    /* =========================================================================
+       2. EFEITOS SONOROS SINTETIZADOS (WEB AUDIO API)
+       ========================================================================= */
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+      if (soundEnabled) {
+        initAudio();
+        playTone(660, 'sine', 0.08, 0.12);
+      }
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.12, volume = 0.14, delay = 0) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+        gain.gain.setValueAtTime(volume, audioCtx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + delay);
+        osc.stop(audioCtx.currentTime + delay + duration);
+      } catch (e) {}
+    }
+
+    function playBidRaiseSound(bidAmount) {
+      const baseFreq = Math.min(1100, 440 + bidAmount * 18);
+      playTone(baseFreq, 'sine', 0.09, 0.14, 0);
+      playTone(baseFreq * 1.25, 'triangle', 0.12, 0.12, 0.05);
+    }
+
+    function playGavelSound() {
+      playTone(150, 'triangle', 0.18, 0.28, 0);
+      playTone(95, 'sine', 0.24, 0.26, 0.04);
+    }
+
+    function playFanfareSound() {
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((n, idx) => {
+        playTone(n, 'triangle', 0.28, 0.18, idx * 0.11);
+      });
+    }
+
+    /* =========================================================================
+       3. RENDERIZADOR SVG DINÂMICO (PASTEL E PIZZA COM TODOS OS 16 INGREDIENTES)
+       ========================================================================= */
+    let svgUidCounter = 0;
+
+    /**
+     * Renderiza a ilustração SVG completa do Pastel ou da Pizza com os ingredientes conquistados.
+     * @param {'pastel'|'pizza'} mode - Modo atual do jogo
+     * @param {Array<{id: string, price: number}>} wonItems - Itens arrematados
+     * @param {string|null} highlightId - ID do ingrediente para destacar
+     */
+    function renderDishSVG(mode, wonItems = [], highlightId = null) {
+      svgUidCounter += 1;
+      const uid = `dish_${svgUidCounter}`;
+
+      const counts = {};
+      wonItems.forEach(entry => {
+        const id = typeof entry === 'string' ? entry : entry.id;
+        counts[id] = (counts[id] || 0) + 1;
+      });
+
+      const has = (id) => (counts[id] || 0) > 0;
+      const qty = (id) => counts[id] || 0;
+
+      const wrapLayer = (id, content) => {
+        if (!has(id)) return '';
+        const isDimmed = highlightId && highlightId !== id;
+        const opacity = isDimmed ? '0.22' : '1';
+        return `<g opacity="${opacity}" style="transition: opacity 0.2s ease;">${content}</g>`;
+      };
+
+      if (mode === 'pizza') {
+        return renderPizzaModeSVG(uid, wonItems.length, has, qty, wrapLayer);
+      }
+      return renderPastelModeSVG(uid, wonItems.length, has, qty, wrapLayer);
+    }
+
+    /* -------------------------------------------------------------------------
+       3A. ILUSTRAÇÃO SVG DO MODO PASTEL (Guardanapo Xadrez + Pastel Frito)
+       ------------------------------------------------------------------------- */
+    function renderPastelModeSVG(uid, totalCount, has, qty, wrapLayer) {
+      let forkMarks = '';
+      for (let x = 62; x <= 278; x += 12) {
+        forkMarks += `<line x1="${x}" y1="43" x2="${x}" y2="54" stroke="#92400E" stroke-width="2" stroke-linecap="round" opacity="0.55"/>`;
+        forkMarks += `<line x1="${x}" y1="176" x2="${x}" y2="187" stroke="#92400E" stroke-width="2" stroke-linecap="round" opacity="0.55"/>`;
+      }
+      for (let y = 60; y <= 170; y += 12) {
+        forkMarks += `<line x1="42" y1="${y}" x2="53" y2="${y}" stroke="#92400E" stroke-width="2" stroke-linecap="round" opacity="0.55"/>`;
+        forkMarks += `<line x1="287" y1="${y}" x2="298" y2="${y}" stroke="#92400E" stroke-width="2" stroke-linecap="round" opacity="0.55"/>`;
+      }
+
+      const layers = {
+        carne_moida: wrapLayer('carne_moida', `
+          <g>
+            <ellipse cx="122" cy="102" rx="24" ry="14" fill="#78350F"/>
+            <ellipse cx="174" cy="118" rx="28" ry="15" fill="#78350F"/>
+            <ellipse cx="222" cy="102" rx="23" ry="14" fill="#78350F"/>
+            <circle cx="110" cy="96" r="5.5" fill="#92400E"/><circle cx="128" cy="104" r="6" fill="#451A03"/>
+            <circle cx="160" cy="114" r="6" fill="#92400E"/><circle cx="182" cy="122" r="5.5" fill="#451A03"/>
+            <circle cx="212" cy="98" r="5" fill="#92400E"/><circle cx="228" cy="106" r="6" fill="#451A03"/>
+            <circle cx="118" cy="100" r="1.8" fill="#16A34A"/><circle cx="172" cy="116" r="1.8" fill="#16A34A"/>
+            ${qty('carne_moida') > 1 ? `<circle cx="142" cy="90" r="6" fill="#78350F"/><circle cx="198" cy="128" r="6" fill="#451A03"/>` : ''}
+          </g>
+        `),
+
+        frango: wrapLayer('frango', `
+          <g stroke-linecap="round" fill="none">
+            <path d="M98 118 Q116 110 132 121" stroke="#FDE68A" stroke-width="5"/>
+            <path d="M104 125 Q120 117 136 127" stroke="#F59E0B" stroke-width="4"/>
+            <path d="M154 90 Q174 82 192 93" stroke="#FDE68A" stroke-width="5"/>
+            <path d="M158 97 Q176 89 196 99" stroke="#D97706" stroke-width="4"/>
+            <path d="M196 124 Q216 116 236 127" stroke="#FDE68A" stroke-width="5"/>
+            <path d="M200 130 Q218 123 234 133" stroke="#F59E0B" stroke-width="4"/>
+          </g>
+        `),
+
+        mussarela: wrapLayer('mussarela', `
+          <g>
+            <path d="M92 90 Q130 76 170 88 Q210 76 246 92 Q238 112 204 108 Q170 120 132 108 Q98 114 92 90 Z" fill="#FEF9C3" opacity="0.93"/>
+            <path d="M108 86 Q138 99 166 84" stroke="#FDE047" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M178 88 Q206 100 232 86" stroke="#FDE047" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <path d="M226 102 Q246 122 238 142" stroke="#FEF08A" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+          </g>
+        `),
+
+        cheddar: wrapLayer('cheddar', `
+          <g fill="none" stroke-linecap="round">
+            <path d="M96 108 C116 96, 134 120, 154 106 C174 94, 192 120, 212 106 C224 98, 234 108, 242 112" stroke="#F97316" stroke-width="7"/>
+            <path d="M98 107 C116 96, 134 119, 154 105 C174 93, 192 119, 212 105" stroke="#FDBA74" stroke-width="2.2"/>
+          </g>
+        `),
+
+        catupiry: wrapLayer('catupiry', `
+          <g fill="none" stroke-linecap="round">
+            <path d="M122 88 C122 81, 134 81, 134 88 C134 96, 116 96, 116 86 C116 76, 140 76, 140 88" stroke="#FFFFFF" stroke-width="4.5"/>
+            <path d="M172 108 C172 101, 184 101, 184 108 C184 116, 166 116, 166 106 C166 96, 190 96, 190 108" stroke="#FFFFFF" stroke-width="4.5"/>
+            <path d="M218 88 C218 81, 230 81, 230 88 C230 96, 212 96, 212 86 C212 76, 236 76, 236 88" stroke="#FFFFFF" stroke-width="4.5"/>
+          </g>
+        `),
+
+        calabresa: wrapLayer('calabresa', `
+          <g>
+            <g transform="translate(108, 86)">
+              <circle r="13" fill="#DC2626" stroke="#7F1D1D" stroke-width="2"/>
+              <circle cx="-4" cy="-3" r="2" fill="#FECACA"/><circle cx="5" cy="2" r="2.2" fill="#FECACA"/>
+            </g>
+            <g transform="translate(188, 88)">
+              <circle r="13" fill="#DC2626" stroke="#7F1D1D" stroke-width="2"/>
+              <circle cx="-3" cy="-4" r="2" fill="#FECACA"/><circle cx="4" cy="3" r="2" fill="#FECACA"/>
+            </g>
+            <g transform="translate(154, 132)">
+              <circle r="13" fill="#DC2626" stroke="#7F1D1D" stroke-width="2"/>
+              <circle cx="-4" cy="2" r="2" fill="#FECACA"/><circle cx="4" cy="-2" r="2.2" fill="#FECACA"/>
+            </g>
+            <!-- Anéis de cebola -->
+            <circle cx="122" cy="96" r="10" fill="none" stroke="#F5D0FE" stroke-width="2.5"/>
+            <circle cx="202" cy="98" r="10" fill="none" stroke="#F5D0FE" stroke-width="2.5"/>
+          </g>
+        `),
+
+        bacon: wrapLayer('bacon', `
+          <g>
+            <g transform="translate(96, 124) rotate(-14)">
+              <rect x="0" y="0" width="36" height="10" rx="4" fill="#991B1B"/>
+              <line x1="3" y1="3.5" x2="33" y2="3.5" stroke="#FECACA" stroke-width="2"/>
+              <line x1="3" y1="7" x2="33" y2="7" stroke="#FCA5A5" stroke-width="1.5"/>
+            </g>
+            <g transform="translate(154, 78) rotate(10)">
+              <rect x="0" y="0" width="38" height="10" rx="4" fill="#991B1B"/>
+              <line x1="3" y1="3.5" x2="35" y2="3.5" stroke="#FECACA" stroke-width="2"/>
+              <line x1="3" y1="7" x2="35" y2="7" stroke="#FCA5A5" stroke-width="1.5"/>
+            </g>
+            <g transform="translate(204, 130) rotate(-8)">
+              <rect x="0" y="0" width="36" height="10" rx="4" fill="#991B1B"/>
+              <line x1="3" y1="3.5" x2="33" y2="3.5" stroke="#FECACA" stroke-width="2"/>
+            </g>
+          </g>
+        `),
+
+        ovo: wrapLayer('ovo', `
+          <g>
+            <g transform="translate(136, 98)">
+              <ellipse rx="14" ry="11" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+              <circle r="6.5" fill="#FACC15"/>
+            </g>
+            <g transform="translate(204, 110)">
+              <ellipse rx="14" ry="11" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+              <circle r="6.5" fill="#FACC15"/>
+            </g>
+          </g>
+        `),
+
+        palmito: wrapLayer('palmito', `
+          <g>
+            <g transform="translate(122, 132)">
+              <circle r="11" fill="#FEFCE8" stroke="#FDE047" stroke-width="1.8"/>
+              <circle r="6" fill="none" stroke="#FEF08A" stroke-width="1.2"/>
+            </g>
+            <g transform="translate(176, 90)">
+              <circle r="11" fill="#FEFCE8" stroke="#FDE047" stroke-width="1.8"/>
+              <circle r="6" fill="none" stroke="#FEF08A" stroke-width="1.2"/>
+            </g>
+            <g transform="translate(228, 96)">
+              <circle r="10.5" fill="#FEFCE8" stroke="#FDE047" stroke-width="1.8"/>
+            </g>
+          </g>
+        `),
+
+        milho_ervilha: wrapLayer('milho_ervilha', `
+          <g>
+            <rect x="102" y="104" width="6" height="5" rx="2" fill="#FACC15"/>
+            <rect x="142" y="84" width="6" height="5" rx="2" fill="#FACC15"/>
+            <rect x="166" y="112" width="6" height="5" rx="2" fill="#FACC15"/>
+            <rect x="196" y="84" width="6" height="5" rx="2" fill="#FACC15"/>
+            <rect x="216" y="124" width="6" height="5" rx="2" fill="#FACC15"/>
+            <circle cx="114" cy="114" r="3.5" fill="#22C55E"/>
+            <circle cx="154" cy="98" r="3.5" fill="#22C55E"/>
+            <circle cx="184" cy="122" r="3.5" fill="#22C55E"/>
+            <circle cx="230" cy="108" r="3.5" fill="#22C55E"/>
+          </g>
+        `),
+
+        azeitona: wrapLayer('azeitona', `
+          <g>
+            <!-- Azeitonas Verdes -->
+            <g transform="translate(100, 102)"><circle r="7.5" fill="#65A30D"/><circle r="3" fill="#EF4444"/></g>
+            <g transform="translate(188, 132)"><circle r="7.5" fill="#65A30D"/><circle r="3" fill="#EF4444"/></g>
+            <!-- Azeitonas Pretas -->
+            <g transform="translate(160, 86)"><circle r="7.5" fill="#1C1917"/><circle r="3" fill="#78350F"/></g>
+            <g transform="translate(234, 88)"><circle r="7.5" fill="#1C1917"/><circle r="3" fill="#78350F"/></g>
+          </g>
+        `),
+
+        tomate_oregano: wrapLayer('tomate_oregano', `
+          <g>
+            <g transform="translate(120, 82) rotate(-18)">
+              <path d="M-14 0 A14 14 0 0 1 14 0 Z" fill="#EF4444" stroke="#B91C1C" stroke-width="1.5"/>
+              <circle cx="-5" cy="-4" r="1.5" fill="#FDE047"/><circle cx="5" cy="-4" r="1.5" fill="#FDE047"/>
+            </g>
+            <g transform="translate(210, 86) rotate(22)">
+              <path d="M-14 0 A14 14 0 0 1 14 0 Z" fill="#EF4444" stroke="#B91C1C" stroke-width="1.5"/>
+              <circle cx="-5" cy="-4" r="1.5" fill="#FDE047"/><circle cx="5" cy="-4" r="1.5" fill="#FDE047"/>
+            </g>
+            <circle cx="120" cy="77" r="1.4" fill="#14532D"/><circle cx="126" cy="79" r="1.4" fill="#14532D"/>
+            <circle cx="208" cy="81" r="1.4" fill="#14532D"/><circle cx="215" cy="83" r="1.4" fill="#14532D"/>
+          </g>
+        `),
+
+        pimenta: wrapLayer('pimenta', `
+          <g>
+            <g transform="translate(94, 80) rotate(-32)">
+              <path d="M0 0 Q12 -3 22 4 Q11 8 0 0 Z" fill="#DC2626"/>
+              <path d="M0 0 L-5 -2" stroke="#16A34A" stroke-width="2.2" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(178, 108) rotate(24)">
+              <path d="M0 0 Q12 -3 22 4 Q11 8 0 0 Z" fill="#DC2626"/>
+              <path d="M0 0 L-5 -2" stroke="#16A34A" stroke-width="2.2" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(230, 132) rotate(-20)">
+              <path d="M0 0 Q12 -3 22 4 Q11 8 0 0 Z" fill="#DC2626"/>
+              <path d="M0 0 L-5 -2" stroke="#16A34A" stroke-width="2.2" stroke-linecap="round"/>
+            </g>
+          </g>
+        `),
+
+        banana: wrapLayer('banana', `
+          <g>
+            <g transform="translate(112, 120)">
+              <circle r="11" fill="#FEF08A" stroke="#EAB308" stroke-width="1.6"/>
+              <circle cx="-3" cy="-2" r="1.2" fill="#92400E"/><circle cx="3" cy="2" r="1.2" fill="#92400E"/>
+            </g>
+            <g transform="translate(168, 102)">
+              <circle r="11" fill="#FEF08A" stroke="#EAB308" stroke-width="1.6"/>
+              <circle cx="-3" cy="2" r="1.2" fill="#92400E"/><circle cx="3" cy="-3" r="1.2" fill="#92400E"/>
+            </g>
+            <g transform="translate(216, 120)">
+              <circle r="11" fill="#FEF08A" stroke="#EAB308" stroke-width="1.6"/>
+              <circle cx="-2" cy="-3" r="1.2" fill="#92400E"/><circle cx="2" cy="3" r="1.2" fill="#92400E"/>
+            </g>
+          </g>
+        `),
+
+        goiabada: wrapLayer('goiabada', `
+          <g>
+            <g transform="translate(100, 88) rotate(-10)">
+              <rect width="16" height="14" rx="3" fill="#BE123C" stroke="#881337" stroke-width="1.2"/>
+              <line x1="3" y1="3" x2="11" y2="3" stroke="#FDA4AF" stroke-width="1.5" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(162, 120) rotate(12)">
+              <rect width="17" height="14" rx="3" fill="#BE123C" stroke="#881337" stroke-width="1.2"/>
+              <line x1="3" y1="3" x2="11" y2="3" stroke="#FDA4AF" stroke-width="1.5" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(210, 90) rotate(-6)">
+              <rect width="16" height="14" rx="3" fill="#BE123C" stroke="#881337" stroke-width="1.2"/>
+              <line x1="3" y1="3" x2="11" y2="3" stroke="#FDA4AF" stroke-width="1.5" stroke-linecap="round"/>
+            </g>
+          </g>
+        `),
+
+        chocolate: wrapLayer('chocolate', `
+          <g>
+            <path d="M94 98 C118 84, 138 114, 164 96 C186 80, 208 112, 238 96" stroke="#451A03" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <path d="M98 96 C118 84, 138 112, 164 94 C186 79, 208 110, 234 95" stroke="#92400E" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <rect x="130" y="120" width="16" height="12" rx="2.5" transform="rotate(-12 130 120)" fill="#5C2408" stroke="#290F02" stroke-width="1"/>
+            <rect x="190" y="118" width="16" height="12" rx="2.5" transform="rotate(14 190 118)" fill="#5C2408" stroke="#290F02" stroke-width="1"/>
+          </g>
+        `)
+      };
+
+      const order = [
+        'carne_moida', 'frango',
+        'mussarela', 'cheddar', 'catupiry', 'chocolate',
+        'calabresa', 'bacon', 'ovo', 'palmito', 'banana', 'goiabada',
+        'milho_ervilha', 'azeitona', 'tomate_oregano', 'pimenta'
+      ];
+
+      return `
+        <svg viewBox="0 0 340 230" class="w-full h-auto drop-shadow-md select-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="${uid}_napkin" width="18" height="18" patternUnits="userSpaceOnUse">
+              <rect width="18" height="18" fill="#FFFFFF"/>
+              <rect width="9" height="9" fill="#E11D48" opacity="0.22"/>
+              <rect x="9" y="9" width="9" height="9" fill="#E11D48" opacity="0.22"/>
+            </pattern>
+            <linearGradient id="${uid}_crust" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FDE047"/>
+              <stop offset="50%" stop-color="#F59E0B"/>
+              <stop offset="100%" stop-color="#D97706"/>
+            </linearGradient>
+            <linearGradient id="${uid}_pocket" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#B45309"/>
+              <stop offset="100%" stop-color="#92400E"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Guardanapo Xadrez -->
+          <g transform="rotate(-3 170 115)">
+            <rect x="22" y="24" width="296" height="182" rx="16" fill="#D6D3D1" transform="translate(3, 5)"/>
+            <rect x="22" y="24" width="296" height="182" rx="16" fill="url(#${uid}_napkin)" stroke="#FDA4AF" stroke-width="2"/>
+          </g>
+
+          <!-- Sombra e Massa Dourada do Pastel -->
+          <rect x="40" y="44" width="264" height="150" rx="20" fill="#78350F" opacity="0.24"/>
+          <rect x="38" y="39" width="264" height="150" rx="20" fill="url(#${uid}_crust)" stroke="#B45309" stroke-width="3"/>
+          <rect x="56" y="56" width="228" height="116" rx="14" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="6 3" opacity="0.65"/>
+          ${forkMarks}
+
+          <!-- Bolhas de Fritura -->
+          <g fill="#FEF08A" opacity="0.6">
+            <ellipse cx="49" cy="76" rx="4" ry="7"/>
+            <ellipse cx="291" cy="148" rx="4" ry="8"/>
+            <ellipse cx="88" cy="48" rx="8" ry="3.5"/>
+            <ellipse cx="248" cy="181" rx="9" ry="3.5"/>
+          </g>
+
+          <!-- Abertura Superior Recheada -->
+          <rect x="68" y="65" width="204" height="98" rx="18" fill="url(#${uid}_pocket)" stroke="#FDE68A" stroke-width="2.5"/>
+
+          ${totalCount === 0 ? `
+            <text x="170" y="119" text-anchor="middle" fill="#FEF3C7" font-family="Fredoka, sans-serif" font-size="16" font-weight="600" opacity="0.9">
+              🥟 Pastel Quentinho
+            </text>
+          ` : ''}
+
+          ${order.map(k => layers[k]).join('')}
+        </svg>
+      `;
+    }
+
+    /* -------------------------------------------------------------------------
+       3B. ILUSTRAÇÃO SVG DO MODO PIZZA (Tábua de Madeira + Pizza Artesanal)
+       ------------------------------------------------------------------------- */
+    function renderPizzaModeSVG(uid, totalCount, has, qty, wrapLayer) {
+      const cx = 152;
+      const cy = 115;
+
+      const layers = {
+        // 1. Carne Moída espalhada nas fatias
+        carne_moida: wrapLayer('carne_moida', `
+          <g>
+            <circle cx="122" cy="84" r="6" fill="#78350F"/><circle cx="132" cy="78" r="5" fill="#451A03"/>
+            <circle cx="176" cy="82" r="6" fill="#78350F"/><circle cx="186" cy="90" r="5" fill="#451A03"/>
+            <circle cx="114" cy="126" r="6" fill="#78350F"/><circle cx="124" cy="134" r="5" fill="#451A03"/>
+            <circle cx="178" cy="132" r="6" fill="#78350F"/><circle cx="168" cy="142" r="5" fill="#451A03"/>
+            <circle cx="150" cy="112" r="5.5" fill="#78350F"/>
+            <circle cx="124" cy="82" r="1.6" fill="#16A34A"/><circle cx="180" cy="86" r="1.6" fill="#16A34A"/>
+          </g>
+        `),
+
+        // 2. Frango Desfiado
+        frango: wrapLayer('frango', `
+          <g stroke-linecap="round" fill="none">
+            <path d="M116 94 Q130 88 140 96" stroke="#FDE68A" stroke-width="4.5"/>
+            <path d="M164 92 Q178 86 188 94" stroke="#F59E0B" stroke-width="4.5"/>
+            <path d="M120 132 Q134 126 144 134" stroke="#F59E0B" stroke-width="4.5"/>
+            <path d="M162 134 Q176 128 186 136" stroke="#FDE68A" stroke-width="4.5"/>
+            <path d="M144 114 Q156 108 164 116" stroke="#FDE68A" stroke-width="4"/>
+          </g>
+        `),
+
+        // 3. Mussarela extra derretida e gratinada
+        mussarela: wrapLayer('mussarela', `
+          <g>
+            <circle cx="152" cy="115" r="64" fill="#FEF9C3" opacity="0.65"/>
+            <circle cx="132" cy="92" r="8" fill="#FDE047" opacity="0.55"/>
+            <circle cx="174" cy="96" r="9" fill="#FDE047" opacity="0.55"/>
+            <circle cx="136" cy="138" r="8" fill="#FDE047" opacity="0.55"/>
+            <circle cx="172" cy="136" r="7" fill="#FDE047" opacity="0.55"/>
+          </g>
+        `),
+
+        // 4. Cheddar Cremoso em raios sobre as fatias
+        cheddar: wrapLayer('cheddar', `
+          <g fill="none" stroke-linecap="round">
+            <path d="M106 102 C126 94, 142 110, 162 100 C176 94, 188 102, 196 106" stroke="#F97316" stroke-width="6"/>
+            <path d="M108 128 C128 120, 144 136, 164 126 C178 120, 188 128, 194 132" stroke="#EA580C" stroke-width="6"/>
+          </g>
+        `),
+
+        // 5. Catupiry Cremoso (espiral clássica de pizzaria!)
+        catupiry: wrapLayer('catupiry', `
+          <g fill="none" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round">
+            <path d="M152 115 C152 108, 162 108, 162 115 C162 125, 142 125, 142 113 C142 98, 172 98, 172 116 C172 135, 130 135, 130 112 C130 88, 182 88, 182 116"/>
+          </g>
+        `),
+
+        // 6. Calabresa Fatiada com Cebola
+        calabresa: wrapLayer('calabresa', `
+          <g>
+            <g transform="translate(132, 82)"><circle r="11" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.8"/><circle cx="-3" cy="-2" r="1.8" fill="#FECACA"/><circle cx="4" cy="2" r="1.8" fill="#FECACA"/></g>
+            <g transform="translate(176, 86)"><circle r="11" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.8"/><circle cx="-3" cy="-2" r="1.8" fill="#FECACA"/><circle cx="4" cy="2" r="1.8" fill="#FECACA"/></g>
+            <g transform="translate(114, 118)"><circle r="11" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.8"/><circle cx="-3" cy="-2" r="1.8" fill="#FECACA"/><circle cx="4" cy="2" r="1.8" fill="#FECACA"/></g>
+            <g transform="translate(188, 122)"><circle r="11" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.8"/><circle cx="-3" cy="-2" r="1.8" fill="#FECACA"/><circle cx="4" cy="2" r="1.8" fill="#FECACA"/></g>
+            <g transform="translate(148, 148)"><circle r="11" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.8"/><circle cx="-3" cy="-2" r="1.8" fill="#FECACA"/><circle cx="4" cy="2" r="1.8" fill="#FECACA"/></g>
+            <!-- Anéis de cebola -->
+            <circle cx="144" cy="92" r="9" fill="none" stroke="#F5D0FE" stroke-width="2.2"/>
+            <circle cx="164" cy="136" r="9" fill="none" stroke="#F5D0FE" stroke-width="2.2"/>
+          </g>
+        `),
+
+        // 7. Bacon Crocante
+        bacon: wrapLayer('bacon', `
+          <g>
+            <g transform="translate(118, 96) rotate(-25)"><rect width="26" height="8" rx="3" fill="#991B1B"/><line x1="2" y1="3" x2="24" y2="3" stroke="#FECACA" stroke-width="1.8"/></g>
+            <g transform="translate(164, 76) rotate(22)"><rect width="26" height="8" rx="3" fill="#991B1B"/><line x1="2" y1="3" x2="24" y2="3" stroke="#FECACA" stroke-width="1.8"/></g>
+            <g transform="translate(126, 142) rotate(15)"><rect width="26" height="8" rx="3" fill="#991B1B"/><line x1="2" y1="3" x2="24" y2="3" stroke="#FECACA" stroke-width="1.8"/></g>
+            <g transform="translate(172, 136) rotate(-18)"><rect width="26" height="8" rx="3" fill="#991B1B"/><line x1="2" y1="3" x2="24" y2="3" stroke="#FECACA" stroke-width="1.8"/></g>
+          </g>
+        `),
+
+        // 8. Ovo Cozido Fatiado
+        ovo: wrapLayer('ovo', `
+          <g>
+            <g transform="translate(152, 76)"><circle r="10" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.2"/><circle r="5" fill="#FACC15"/></g>
+            <g transform="translate(116, 114)"><circle r="10" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.2"/><circle r="5" fill="#FACC15"/></g>
+            <g transform="translate(186, 114)"><circle r="10" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.2"/><circle r="5" fill="#FACC15"/></g>
+            <g transform="translate(152, 152)"><circle r="10" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.2"/><circle r="5" fill="#FACC15"/></g>
+          </g>
+        `),
+
+        // 9. Palmito em Rodelas
+        palmito: wrapLayer('palmito', `
+          <g>
+            <g transform="translate(136, 102)"><circle r="9.5" fill="#FEFCE8" stroke="#FDE047" stroke-width="1.5"/><circle r="5" fill="none" stroke="#FEF08A" stroke-width="1.2"/></g>
+            <g transform="translate(172, 104)"><circle r="9.5" fill="#FEFCE8" stroke="#FDE047" stroke-width="1.5"/><circle r="5" fill="none" stroke="#FEF08A" stroke-width="1.2"/></g>
+            <g transform="translate(138, 134)"><circle r="9.5" fill="#FEFCE8" stroke="#FDE047" stroke-width="1.5"/><circle r="5" fill="none" stroke="#FEF08A" stroke-width="1.2"/></g>
+          </g>
+        `),
+
+        // 10. Milho & Ervilha
+        milho_ervilha: wrapLayer('milho_ervilha', `
+          <g>
+            <rect x="128" y="88" width="5.5" height="4.5" rx="2" fill="#FACC15"/>
+            <rect x="166" y="88" width="5.5" height="4.5" rx="2" fill="#FACC15"/>
+            <rect x="126" y="130" width="5.5" height="4.5" rx="2" fill="#FACC15"/>
+            <rect x="174" y="128" width="5.5" height="4.5" rx="2" fill="#FACC15"/>
+            <circle cx="140" cy="84" r="3.2" fill="#22C55E"/>
+            <circle cx="176" cy="98" r="3.2" fill="#22C55E"/>
+            <circle cx="134" cy="142" r="3.2" fill="#22C55E"/>
+            <circle cx="164" cy="142" r="3.2" fill="#22C55E"/>
+          </g>
+        `),
+
+        // 11. Azeitonas Verdes e Pretas
+        azeitona: wrapLayer('azeitona', `
+          <g>
+            <g transform="translate(152, 92)"><circle r="6.5" fill="#65A30D"/><circle r="2.6" fill="#EF4444"/></g>
+            <g transform="translate(152, 138)"><circle r="6.5" fill="#65A30D"/><circle r="2.6" fill="#EF4444"/></g>
+            <g transform="translate(124, 114)"><circle r="6.5" fill="#1C1917"/><circle r="2.6" fill="#78350F"/></g>
+            <g transform="translate(180, 114)"><circle r="6.5" fill="#1C1917"/><circle r="2.6" fill="#78350F"/></g>
+          </g>
+        `),
+
+        // 12. Tomate Fresco & Orégano
+        tomate_oregano: wrapLayer('tomate_oregano', `
+          <g>
+            <circle cx="136" cy="86" r="10" fill="#EF4444" stroke="#B91C1C" stroke-width="1.4"/>
+            <circle cx="174" cy="90" r="10" fill="#EF4444" stroke="#B91C1C" stroke-width="1.4"/>
+            <circle cx="132" cy="138" r="10" fill="#EF4444" stroke="#B91C1C" stroke-width="1.4"/>
+            <circle cx="172" cy="136" r="10" fill="#EF4444" stroke="#B91C1C" stroke-width="1.4"/>
+            <!-- Folhinhas de orégano/manjericão -->
+            <circle cx="152" cy="115" r="1.5" fill="#14532D"/><circle cx="144" cy="106" r="1.5" fill="#14532D"/>
+            <circle cx="162" cy="122" r="1.5" fill="#14532D"/><circle cx="148" cy="128" r="1.5" fill="#14532D"/>
+          </g>
+        `),
+
+        // 13. Pimenta Malagueta
+        pimenta: wrapLayer('pimenta', `
+          <g>
+            <g transform="translate(124, 78) rotate(-35)"><path d="M0 0 Q10 -3 19 3 Q10 7 0 0 Z" fill="#DC2626"/><path d="M0 0 L-4 -2" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></g>
+            <g transform="translate(182, 102) rotate(30)"><path d="M0 0 Q10 -3 19 3 Q10 7 0 0 Z" fill="#DC2626"/><path d="M0 0 L-4 -2" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></g>
+            <g transform="translate(136, 152) rotate(-15)"><path d="M0 0 Q10 -3 19 3 Q10 7 0 0 Z" fill="#DC2626"/><path d="M0 0 L-4 -2" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></g>
+          </g>
+        `),
+
+        // 14. Chocolate ao Leite Derretido
+        chocolate: wrapLayer('chocolate', `
+          <g>
+            <circle cx="152" cy="115" r="62" fill="#451A03" opacity="0.82"/>
+            <path d="M110 100 C130 88, 150 112, 174 96" stroke="#92400E" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <rect x="128" y="118" width="14" height="10" rx="2" transform="rotate(-14 128 118)" fill="#78350F" stroke="#290F02" stroke-width="1"/>
+            <rect x="164" y="114" width="14" height="10" rx="2" transform="rotate(16 164 114)" fill="#78350F" stroke="#290F02" stroke-width="1"/>
+          </g>
+        `),
+
+        // 15. Banana com Canela
+        banana: wrapLayer('banana', `
+          <g>
+            <g transform="translate(134, 88)"><circle r="10" fill="#FEF08A" stroke="#EAB308" stroke-width="1.5"/><circle cx="-2" cy="-2" r="1.2" fill="#92400E"/><circle cx="2" cy="2" r="1.2" fill="#92400E"/></g>
+            <g transform="translate(172, 92)"><circle r="10" fill="#FEF08A" stroke="#EAB308" stroke-width="1.5"/><circle cx="-2" cy="-2" r="1.2" fill="#92400E"/><circle cx="2" cy="2" r="1.2" fill="#92400E"/></g>
+            <g transform="translate(132, 136)"><circle r="10" fill="#FEF08A" stroke="#EAB308" stroke-width="1.5"/><circle cx="-2" cy="-2" r="1.2" fill="#92400E"/><circle cx="2" cy="2" r="1.2" fill="#92400E"/></g>
+            <g transform="translate(170, 138)"><circle r="10" fill="#FEF08A" stroke="#EAB308" stroke-width="1.5"/><circle cx="-2" cy="-2" r="1.2" fill="#92400E"/><circle cx="2" cy="2" r="1.2" fill="#92400E"/></g>
+          </g>
+        `),
+
+        // 16. Goiabada Cremosa
+        goiabada: wrapLayer('goiabada', `
+          <g>
+            <g transform="translate(128, 86) rotate(-12)"><rect width="14" height="12" rx="2.5" fill="#BE123C" stroke="#881337" stroke-width="1.2"/><line x1="2.5" y1="2.5" x2="9" y2="2.5" stroke="#FDA4AF" stroke-width="1.4" stroke-linecap="round"/></g>
+            <g transform="translate(168, 86) rotate(14)"><rect width="14" height="12" rx="2.5" fill="#BE123C" stroke="#881337" stroke-width="1.2"/><line x1="2.5" y1="2.5" x2="9" y2="2.5" stroke="#FDA4AF" stroke-width="1.4" stroke-linecap="round"/></g>
+            <g transform="translate(128, 130) rotate(8)"><rect width="14" height="12" rx="2.5" fill="#BE123C" stroke="#881337" stroke-width="1.2"/><line x1="2.5" y1="2.5" x2="9" y2="2.5" stroke="#FDA4AF" stroke-width="1.4" stroke-linecap="round"/></g>
+            <g transform="translate(166, 130) rotate(-10)"><rect width="14" height="12" rx="2.5" fill="#BE123C" stroke="#881337" stroke-width="1.2"/><line x1="2.5" y1="2.5" x2="9" y2="2.5" stroke="#FDA4AF" stroke-width="1.4" stroke-linecap="round"/></g>
+          </g>
+        `)
+      };
+
+      const order = [
+        'mussarela', 'chocolate',
+        'carne_moida', 'frango',
+        'cheddar', 'catupiry',
+        'calabresa', 'bacon', 'ovo', 'palmito', 'banana', 'goiabada',
+        'milho_ervilha', 'azeitona', 'tomate_oregano', 'pimenta'
+      ];
+
+      return `
+        <svg viewBox="0 0 340 230" class="w-full h-auto drop-shadow-md select-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Gradiente da Tábua de Madeira -->
+            <linearGradient id="${uid}_wood" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#D97706"/>
+              <stop offset="50%" stop-color="#B45309"/>
+              <stop offset="100%" stop-color="#92400E"/>
+            </linearGradient>
+
+            <!-- Borda da Pizza Forno a Lenha -->
+            <radialGradient id="${uid}_pizza_crust" cx="50%" cy="50%" r="50%">
+              <stop offset="76%" stop-color="#F59E0B"/>
+              <stop offset="92%" stop-color="#D97706"/>
+              <stop offset="100%" stop-color="#92400E"/>
+            </radialGradient>
+          </defs>
+
+          <!-- Sombra da Tábua de Madeira -->
+          <g transform="translate(3, 5)">
+            <circle cx="${cx}" cy="${cy}" r="98" fill="#57534E" opacity="0.28"/>
+            <rect x="235" y="99" width="84" height="32" rx="14" fill="#57534E" opacity="0.28"/>
+          </g>
+
+          <!-- Tábua Redonda de Madeira com Cabo -->
+          <rect x="235" y="99" width="84" height="32" rx="14" fill="url(#${uid}_wood)" stroke="#78350F" stroke-width="2.5"/>
+          <circle cx="303" cy="115" r="5" fill="#FFFDF7" stroke="#78350F" stroke-width="2"/>
+          <circle cx="${cx}" cy="${cy}" r="98" fill="url(#${uid}_wood)" stroke="#78350F" stroke-width="2.5"/>
+          <!-- Veios sutis da madeira -->
+          <path d="M74 88 Q152 78 230 88" stroke="#78350F" stroke-width="1.2" fill="none" opacity="0.35"/>
+          <path d="M72 142 Q152 152 232 142" stroke="#78350F" stroke-width="1.2" fill="none" opacity="0.35"/>
+
+          <!-- Borda Assada da Pizza -->
+          <circle cx="${cx}" cy="${cy}" r="86" fill="url(#${uid}_pizza_crust)" stroke="#92400E" stroke-width="2"/>
+
+          <!-- Bolhas tostadas do forno a lenha na borda -->
+          <g fill="#78350F" opacity="0.55">
+            <ellipse cx="96" cy="60" rx="6" ry="3" transform="rotate(-35 96 60)"/>
+            <ellipse cx="212" cy="66" rx="7" ry="3" transform="rotate(35 212 66)"/>
+            <ellipse cx="82" cy="148" rx="6" ry="3" transform="rotate(55 82 148)"/>
+            <ellipse cx="214" cy="166" rx="7" ry="3" transform="rotate(-35 214 166)"/>
+          </g>
+
+          <!-- Molho de Tomate Artesanal -->
+          <circle cx="${cx}" cy="${cy}" r="72" fill="#DC2626"/>
+
+          <!-- Base de Queijo Derretido -->
+          <circle cx="${cx}" cy="${cy}" r="66" fill="#FDE68A"/>
+
+          <!-- Linhas sutis das fatias -->
+          <g stroke="#D97706" stroke-width="1" opacity="0.32">
+            <line x1="${cx}" y1="${cy - 66}" x2="${cx}" y2="${cy + 66}"/>
+            <line x1="${cx - 57}" y1="${cy - 33}" x2="${cx + 57}" y2="${cy + 33}"/>
+            <line x1="${cx - 57}" y1="${cy + 33}" x2="${cx + 57}" y2="${cy - 33}"/>
+          </g>
+
+          ${totalCount === 0 ? `
+            <text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="#B45309" font-family="Fredoka, sans-serif" font-size="14" font-weight="600" opacity="0.85">
+              🍕 Massa &amp; Queijo
+            </text>
+          ` : ''}
+
+          ${order.map(k => layers[k]).join('')}
+        </svg>
+      `;
+    }
+  </script>
+
+  <!-- =========================================================================
+       4. MOTOR MULTIPLAYER ONLINE (FIREBASE FIRESTORE) + MODO OFFLINE
+       ========================================================================= -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const INITIAL_BUDGET = 30;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let firebaseReady = false;
+
+    // Estado de Sessão (Online vs Offline)
+    let deviceMode = 'online'; // 'online' | 'offline'
+    let selectedMode = 'pastel'; // 'pastel' | 'pizza'
+    let selectedIngredientIds = new Set(INGREDIENTS_DB.map(i => i.id));
+
+    // Estado da Sala Online (2 Celulares)
+    let currentRoomCode = null;
+    let myPlayerIndex = 0; // 0 = Anfitrião (P1), 1 = Convidado (P2)
+    let roomUnsubscribe = null;
+    let lastRoomSnapshot = null;
+    let dishViewMode = 'mine'; // 'mine' | 'partner' | 'both'
+    let autoAdvanceTimer = null;
+
+    // Estado Unificado da Partida em Andamento
+    let gameState = {
+      isOnline: false,
+      mode: 'pastel',
+      players: [
+        { name: 'Eu', money: INITIAL_BUDGET, wonItems: [] },
+        { name: 'Namorada', money: INITIAL_BUDGET, wonItems: [] }
+      ],
+      selectedPool: [],
+      deck: [],
+      itemNumber: 1,
+      currentIngredient: null,
+      currentBid: 0,
+      highestBidderIndex: null,
+      activeTurnIndex: 0,
+      passesCount: 0,
+      bidHistory: [],
+      customSliderVal: 1,
+      roundPhase: 'bidding', // 'bidding' | 'hammer'
+      roundOutcome: null
+    };
+
+    /* -------------------------------------------------------------------------
+       4A. INICIALIZAÇÃO DO FIREBASE E AUTENTICAÇÃO ANÔNIMA / CUSTOM TOKEN
+       ------------------------------------------------------------------------- */
+    async function initFirebaseService() {
+      const statusText = document.getElementById('connection-text');
+      const statusDot = document.getElementById('connection-dot');
+
+      try {
+        if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+          throw new Error('Configuração do Firebase ausente');
+        }
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        currentUser = auth.currentUser;
+        if (!currentUser) {
+          throw new Error('Falha na autenticação');
+        }
+
+        firebaseReady = true;
+        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        statusText.textContent = 'Sincronizado ao vivo';
+      } catch (err) {
+        console.warn('Modo online indisponível, alternando para offline:', err);
+        firebaseReady = false;
+        statusDot.className = 'w-2 h-2 rounded-full bg-amber-300';
+        statusText.textContent = 'Modo Local (Offline)';
+        switchDeviceMode('offline');
+      }
+    }
+
+    function getRoomDocRef(roomCode) {
+      return doc(db, 'artifacts', appId, 'public', 'data', 'duelo_rooms', String(roomCode));
+    }
+
+    /* -------------------------------------------------------------------------
+       4B. UTILITÁRIOS DE UI E NAVEGAÇÃO ENTRE MODOS
+       ------------------------------------------------------------------------- */
+    let toastTimeout = null;
+    function showToast(msg) {
+      const banner = document.getElementById('toast-banner');
+      document.getElementById('toast-text').textContent = msg;
+      banner.classList.remove('hidden');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2800);
+    }
+
+    function switchDeviceMode(mode) {
+      if (mode === 'online' && !firebaseReady) {
+        showToast('Conexão online indisponível neste navegador. Usando modo offline.');
+        mode = 'offline';
+      }
+      deviceMode = mode;
+
+      const tabOnline = document.getElementById('tab-device-online');
+      const tabOffline = document.getElementById('tab-device-offline');
+      const panelOnline = document.getElementById('setup-online-panel');
+      const panelOffline = document.getElementById('setup-offline-panel');
+
+      if (mode === 'online') {
+        tabOnline.className = 'px-3.5 sm:px-5 py-2 rounded-xl bg-red-600 text-white font-extrabold text-xs sm:text-sm shadow transition cursor-pointer';
+        tabOffline.className = 'px-3.5 sm:px-5 py-2 rounded-xl bg-white/80 hover:bg-white text-stone-700 font-bold text-xs sm:text-sm transition cursor-pointer';
+        panelOnline.classList.remove('hidden');
+        panelOffline.classList.add('hidden');
+        document.getElementById('header-subtitle').textContent = 'Pastel ou Pizza • 2 Celulares ao Vivo';
+      } else {
+        tabOffline.className = 'px-3.5 sm:px-5 py-2 rounded-xl bg-red-600 text-white font-extrabold text-xs sm:text-sm shadow transition cursor-pointer';
+        tabOnline.className = 'px-3.5 sm:px-5 py-2 rounded-xl bg-white/80 hover:bg-white text-stone-700 font-bold text-xs sm:text-sm transition cursor-pointer';
+        panelOffline.classList.remove('hidden');
+        panelOnline.classList.add('hidden');
+        document.getElementById('header-subtitle').textContent = 'Pastel ou Pizza • Mesmo Celular';
+        renderSetupHeroPreview();
+        renderSetupIngredientsGrid();
+      }
+    }
+
+    function setMyOnlineName(name) {
+      document.getElementById('input-online-my-name').value = name;
+      playTone(620, 'sine', 0.06, 0.08);
+    }
+
+    function selectGameMode(mode) {
+      selectedMode = mode;
+
+      // Atualiza cards do modo offline
+      const cardPastel = document.getElementById('mode-card-pastel');
+      const cardPizza = document.getElementById('mode-card-pizza');
+      const checkPastel = document.getElementById('mode-check-pastel');
+      const checkPizza = document.getElementById('mode-check-pizza');
+
+      // Atualiza botões de criação rápida online
+      const btnCreatePastel = document.getElementById('online-create-pastel');
+      const btnCreatePizza = document.getElementById('online-create-pizza');
+
+      if (mode === 'pastel') {
+        if (cardPastel) {
+          cardPastel.className = 'text-left p-4 sm:p-5 rounded-3xl border-4 border-amber-500 bg-amber-50 shadow-md transition-all flex items-center gap-4 cursor-pointer relative overflow-hidden';
+          cardPizza.className = 'text-left p-4 sm:p-5 rounded-3xl border-3 border-stone-200 bg-white hover:border-red-300 hover:bg-red-50/40 transition-all flex items-center gap-4 cursor-pointer relative overflow-hidden';
+          checkPastel.classList.remove('hidden');
+          checkPizza.classList.add('hidden');
+        }
+        if (btnCreatePastel) {
+          btnCreatePastel.className = 'p-3 rounded-2xl border-3 border-amber-500 bg-white shadow-xs text-center transition cursor-pointer';
+          btnCreatePizza.className = 'p-3 rounded-2xl border-2 border-stone-200 bg-white/70 hover:bg-white text-center transition cursor-pointer';
+        }
+        document.getElementById('header-mode-icon').textContent = '🥟';
+      } else {
+        if (cardPizza) {
+          cardPizza.className = 'text-left p-4 sm:p-5 rounded-3xl border-4 border-red-500 bg-red-50 shadow-md transition-all flex items-center gap-4 cursor-pointer relative overflow-hidden';
+          cardPastel.className = 'text-left p-4 sm:p-5 rounded-3xl border-3 border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50/40 transition-all flex items-center gap-4 cursor-pointer relative overflow-hidden';
+          checkPizza.classList.remove('hidden');
+          checkPastel.classList.add('hidden');
+        }
+        if (btnCreatePizza) {
+          btnCreatePizza.className = 'p-3 rounded-2xl border-3 border-red-500 bg-white shadow-xs text-center transition cursor-pointer';
+          btnCreatePastel.className = 'p-3 rounded-2xl border-2 border-stone-200 bg-white/70 hover:bg-white text-center transition cursor-pointer';
+        }
+        document.getElementById('header-mode-icon').textContent = '🍕';
+      }
+
+      if (deviceMode === 'offline') {
+        renderSetupHeroPreview();
+      }
+      playBidRaiseSound(4);
+    }
+
+    function renderSetupHeroPreview() {
+      const sample = ['carne_moida', 'mussarela', 'calabresa', 'catupiry', 'ovo', 'azeitona', 'tomate_oregano'];
+      const target = document.getElementById('setup-hero-art');
+      if (target) target.innerHTML = renderDishSVG(selectedMode, sample);
+    }
+
+    /* -------------------------------------------------------------------------
+       4C. SALA ONLINE EM 2 CELULARES (CRIAR, ENTRAR, LOBBY COLABORATIVO)
+       ------------------------------------------------------------------------- */
+    function showOnlineEntryError(msg) {
+      const el = document.getElementById('online-entry-error');
+      if (!msg) {
+        el.classList.add('hidden');
+        return;
+      }
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    async function createOnlineRoom() {
+      if (!firebaseReady || !currentUser) {
+        showOnlineEntryError('Aguarde a conexão ao vivo terminar de carregar...');
+        return;
+      }
+
+      showOnlineEntryError(null);
+      const myName = document.getElementById('input-online-my-name').value.trim() || 'Eu';
+      const btn = document.getElementById('btn-create-room');
+      btn.disabled = true;
+      btn.textContent = '⏳ Criando sala...';
+
+      try {
+        // Gera código único de 4 dígitos
+        let roomCode = '';
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const candidate = String(Math.floor(1000 + Math.random() * 9000));
+          const snap = await getDoc(getRoomDocRef(candidate));
+          if (!snap.exists() || snap.data().status === 'finished') {
+            roomCode = candidate;
+            break;
+          }
+        }
+        if (!roomCode) {
+          roomCode = String(Math.floor(1000 + Math.random() * 9000));
+        }
+
+        const allIds = INGREDIENTS_DB.map(i => i.id);
+        const initialOwners = {};
+        allIds.forEach(id => { initialOwners[id] = 0; });
+
+        const roomPayload = {
+          roomCode,
+          status: 'lobby', // 'lobby' | 'playing' | 'finished'
+          mode: selectedMode,
+          p1Uid: currentUser.uid,
+          p1Name: myName,
+          p1Money: INITIAL_BUDGET,
+          p1WonItems: [],
+          p2Uid: null,
+          p2Name: '',
+          p2Money: INITIAL_BUDGET,
+          p2WonItems: [],
+          selectedIngredients: allIds,
+          ingredientOwners: initialOwners,
+          deck: [],
+          itemNumber: 1,
+          currentIngredientId: null,
+          currentBid: 0,
+          highestBidderIndex: null,
+          activeTurnIndex: 0,
+          passesCount: 0,
+          bidHistory: [],
+          roundPhase: 'bidding',
+          roundOutcome: null,
+          updatedAt: Date.now()
+        };
+
+        await setDoc(getRoomDocRef(roomCode), roomPayload);
+
+        currentRoomCode = roomCode;
+        myPlayerIndex = 0;
+        subscribeToOnlineRoom(roomCode);
+        playFanfareSound();
+        showToast(`Sala ${roomCode} criada! Compartilhe o código com seu par.`);
+      } catch (err) {
+        console.error('Erro ao criar sala:', err);
+        showOnlineEntryError('Não foi possível criar a sala. Tente novamente.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Criar Sala (4 Dígitos)';
+      }
+    }
+
+    async function joinOnlineRoom() {
+      if (!firebaseReady || !currentUser) {
+        showOnlineEntryError('Aguarde a conexão ao vivo terminar de carregar...');
+        return;
+      }
+
+      showOnlineEntryError(null);
+      const rawCode = document.getElementById('input-join-room-code').value.trim().replace(/\D/g, '');
+      if (rawCode.length !== 4) {
+        showOnlineEntryError('⚠️ Digite o código completo de 4 dígitos da sala.');
+        return;
+      }
+
+      const myName = document.getElementById('input-online-my-name').value.trim() || 'Namorada';
+      const btn = document.getElementById('btn-join-room');
+      btn.disabled = true;
+      btn.textContent = '⏳ Entrando...';
+
+      try {
+        const ref = getRoomDocRef(rawCode);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+          showOnlineEntryError(`⚠️ Nenhuma sala encontrada com o código ${rawCode}. Confira os números!`);
+          return;
+        }
+
+        const data = snap.data();
+
+        if (data.p1Uid === currentUser.uid) {
+          currentRoomCode = rawCode;
+          myPlayerIndex = 0;
+          subscribeToOnlineRoom(rawCode);
+          return;
+        }
+
+        if (data.p2Uid === currentUser.uid) {
+          currentRoomCode = rawCode;
+          myPlayerIndex = 1;
+          subscribeToOnlineRoom(rawCode);
+          return;
+        }
+
+        if (data.p2Uid) {
+          showOnlineEntryError('⚠️ Esta sala já está com 2 jogadores conectados!');
+          return;
+        }
+
+        // Evita nomes idênticos caso ambos deixem "Eu"
+        const finalP2Name = (myName.toLowerCase() === (data.p1Name || '').toLowerCase())
+          ? `${myName} (2)`
+          : myName;
+
+        await updateDoc(ref, {
+          p2Uid: currentUser.uid,
+          p2Name: finalP2Name,
+          updatedAt: Date.now()
+        });
+
+        currentRoomCode = rawCode;
+        myPlayerIndex = 1;
+        subscribeToOnlineRoom(rawCode);
+        playFanfareSound();
+        showToast(`Conectado na sala ${rawCode}!`);
+      } catch (err) {
+        console.error('Erro ao entrar na sala:', err);
+        showOnlineEntryError('Erro ao conectar na sala. Verifique o código e tente novamente.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📲 Entrar na Sala';
+      }
+    }
+
+    function subscribeToOnlineRoom(roomCode) {
+      if (roomUnsubscribe) {
+        roomUnsubscribe();
+        roomUnsubscribe = null;
+      }
+
+      const ref = getRoomDocRef(roomCode);
+      roomUnsubscribe = onSnapshot(
+        ref,
+        (snap) => {
+          if (!snap.exists()) {
+            showToast('A sala foi encerrada.');
+            leaveOnlineRoom();
+            return;
+          }
+          const data = snap.data();
+          const prevSnap = lastRoomSnapshot;
+          lastRoomSnapshot = data;
+          syncRoomStateToUI(data, prevSnap);
+        },
+        (error) => {
+          console.error('Erro na sincronização em tempo real:', error);
+          showToast('Oscilação na conexão ao vivo. Tentando reconectar...');
+        }
+      );
+    }
+
+    function leaveOnlineRoom() {
+      if (roomUnsubscribe) {
+        roomUnsubscribe();
+        roomUnsubscribe = null;
+      }
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+      }
+      currentRoomCode = null;
+      lastRoomSnapshot = null;
+      document.getElementById('header-room-badge').classList.add('hidden');
+      document.getElementById('header-round-badge').classList.add('hidden');
+      document.getElementById('online-lobby-view').classList.add('hidden');
+      document.getElementById('online-entry-view').classList.remove('hidden');
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-final').classList.add('hidden');
+      document.getElementById('screen-setup').classList.remove('hidden');
+    }
+
+    function copyRoomCode() {
+      if (!currentRoomCode) return;
+      const inviteText = `Vem disputar comigo no Duelo Gastronômico! Código da sala: ${currentRoomCode}`;
+      const textarea = document.createElement('textarea');
+      textarea.value = currentRoomCode;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(`Código ${currentRoomCode} copiado! Cole no WhatsApp.`);
+      } catch (e) {
+        showToast(`Código da sala: ${currentRoomCode}`);
+      }
+      document.body.removeChild(textarea);
+      playTone(720, 'sine', 0.08, 0.12);
+    }
+
+    async function updateLobbyMode(mode) {
+      if (!currentUser || !currentRoomCode || myPlayerIndex !== 0) return;
+      try {
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          mode,
+          updatedAt: Date.now()
+        });
+        playBidRaiseSound(4);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function toggleLobbyIngredient(ingId) {
+      if (!currentUser || !currentRoomCode || !lastRoomSnapshot) return;
+      const currentList = new Set(lastRoomSnapshot.selectedIngredients || []);
+      const owners = { ...(lastRoomSnapshot.ingredientOwners || {}) };
+
+      if (currentList.has(ingId)) {
+        currentList.delete(ingId);
+        delete owners[ingId];
+        playTone(420, 'sine', 0.06, 0.08);
+      } else {
+        currentList.add(ingId);
+        owners[ingId] = myPlayerIndex;
+        playTone(640, 'sine', 0.06, 0.08);
+      }
+
+      try {
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          selectedIngredients: Array.from(currentList),
+          ingredientOwners: owners,
+          updatedAt: Date.now()
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function applyLobbyPreset(preset) {
+      if (!currentUser || !currentRoomCode) return;
+      let ids = [];
+      if (preset === 'all') {
+        ids = INGREDIENTS_DB.map(i => i.id);
+      } else if (preset === 'savory') {
+        ids = INGREDIENTS_DB.filter(i => i.category === 'Salgado').map(i => i.id);
+      } else if (preset === 'classic') {
+        ids = INGREDIENTS_DB.filter(i => i.classic).map(i => i.id);
+      }
+
+      const owners = {};
+      ids.forEach(id => { owners[id] = myPlayerIndex; });
+
+      try {
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          selectedIngredients: ids,
+          ingredientOwners: owners,
+          updatedAt: Date.now()
+        });
+        playBidRaiseSound(6);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderLobbyView(data) {
+      document.getElementById('screen-setup').classList.remove('hidden');
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-final').classList.add('hidden');
+      document.getElementById('online-entry-view').classList.add('hidden');
+      document.getElementById('online-lobby-view').classList.remove('hidden');
+      document.getElementById('header-round-badge').classList.add('hidden');
+
+      const roomBadge = document.getElementById('header-room-badge');
+      roomBadge.textContent = `Sala ${data.roomCode}`;
+      roomBadge.classList.remove('hidden');
+
+      document.getElementById('lobby-room-code-display').textContent = data.roomCode;
+      document.getElementById('header-mode-icon').textContent = data.mode === 'pizza' ? '🍕' : '🥟';
+      document.getElementById('lobby-mode-pill').textContent = data.mode === 'pizza'
+        ? '🍕 Prato: Pizza Forno a Lenha'
+        : '🥟 Prato: Pastel de Feira';
+
+      // Jogadores na sala
+      document.getElementById('lobby-p1-name').textContent = data.p1Name || 'Jogador 1';
+      const p2Card = document.getElementById('lobby-p2-card');
+      const p2NameEl = document.getElementById('lobby-p2-name');
+      const p2StatusEl = document.getElementById('lobby-p2-status');
+
+      if (data.p2Uid) {
+        p2Card.className = 'rounded-2xl p-4 border-2 border-rose-400 bg-p2-light flex items-center justify-between';
+        p2NameEl.textContent = data.p2Name || 'Jogador 2';
+        p2StatusEl.textContent = '✅ Na sala';
+        p2StatusEl.className = 'text-xs font-extrabold bg-rose-600 text-white px-3 py-1 rounded-full';
+      } else {
+        p2Card.className = 'rounded-2xl p-4 border-2 border-dashed border-rose-300 bg-p2-light/50 flex items-center justify-between';
+        p2NameEl.textContent = `Use o código ${data.roomCode}...`;
+        p2StatusEl.textContent = '⏳ Aguardando';
+        p2StatusEl.className = 'text-xs font-extrabold bg-amber-200 text-amber-950 px-3 py-1 rounded-full animate-pulse';
+      }
+
+      // Ingredientes colaborativos
+      const selectedSet = new Set(data.selectedIngredients || []);
+      const owners = data.ingredientOwners || {};
+      const grid = document.getElementById('lobby-ingredients-grid');
+
+      grid.innerHTML = INGREDIENTS_DB.map(ing => {
+        const isSelected = selectedSet.has(ing.id);
+        const ownerIdx = owners[ing.id];
+        const isSweet = ing.category === 'Doce';
+
+        const cardStyle = isSelected
+          ? 'border-2 border-amber-500 bg-amber-50/90 shadow-xs'
+          : 'border-2 border-stone-200 bg-stone-50/70 opacity-60 hover:opacity-90';
+
+        let ownerTag = '';
+        if (isSelected && (ownerIdx === 0 || ownerIdx === 1)) {
+          const ownerName = ownerIdx === 0 ? (data.p1Name || 'P1') : (data.p2Name || 'P2');
+          const ownerCls = ownerIdx === 0 ? 'bg-teal-100 text-teal-900' : 'bg-rose-100 text-rose-900';
+          ownerTag = `<span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded ${ownerCls} truncate max-w-[72px]">${ownerIdx === 0 ? '😎' : '😍'} ${ownerName}</span>`;
+        }
+
+        return `
+          <button
+            type="button"
+            onclick="toggleLobbyIngredient('${ing.id}')"
+            class="${cardStyle} rounded-2xl p-2.5 text-left transition-all flex items-center gap-2 cursor-pointer relative"
+          >
+            <span class="text-2xl shrink-0 select-none">${ing.emoji}</span>
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-xs text-stone-900 leading-tight truncate">${ing.shortName}</div>
+              <div class="flex items-center gap-1 mt-1 flex-wrap">
+                <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded ${isSweet ? 'bg-pink-100 text-pink-800' : 'bg-emerald-100 text-emerald-800'}">
+                  ${ing.category}
+                </span>
+                ${ownerTag}
+              </div>
+            </div>
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-extrabold shrink-0 ${isSelected ? 'bg-amber-500 text-white' : 'bg-stone-200 text-stone-400'}">
+              ${isSelected ? '✓' : ''}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      const count = selectedSet.size;
+      document.getElementById('lobby-selected-count').textContent = count === 1 ? '1 selecionado' : `${count} selecionados`;
+
+      const minWarn = document.getElementById('lobby-min-warning');
+      if (count < 4) minWarn.classList.remove('hidden');
+      else minWarn.classList.add('hidden');
+
+      // Controles de Anfitrião vs Convidado
+      const hostStartBox = document.getElementById('lobby-host-start-box');
+      const guestWaitBox = document.getElementById('lobby-guest-wait-box');
+      const hostModeSwitch = document.getElementById('lobby-host-mode-switch');
+
+      if (myPlayerIndex === 0) {
+        hostStartBox.classList.remove('hidden');
+        guestWaitBox.classList.add('hidden');
+        hostModeSwitch.classList.remove('hidden');
+
+        const startBtn = document.getElementById('btn-start-online-game');
+        const waitHint = document.getElementById('lobby-waiting-partner-hint');
+        const readyToStart = Boolean(data.p2Uid) && count >= 4;
+        startBtn.disabled = !readyToStart;
+
+        if (!data.p2Uid) {
+          waitHint.textContent = `💡 Compartilhe o código ${data.roomCode} para o 2º celular entrar!`;
+          waitHint.classList.remove('hidden');
+        } else if (count < 4) {
+          waitHint.textContent = '⚠️ Selecione pelo menos 4 ingredientes acima para iniciar.';
+          waitHint.classList.remove('hidden');
+        } else {
+          waitHint.textContent = `🎉 ${data.p2Name} já está na sala! Pode começar o leilão!`;
+          waitHint.classList.remove('hidden');
+        }
+      } else {
+        hostStartBox.classList.add('hidden');
+        guestWaitBox.classList.remove('hidden');
+        // Convidado vê só o botão Sair
+        hostModeSwitch.innerHTML = `
+          <button type="button" onclick="leaveOnlineRoom()" class="px-3 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold text-xs cursor-pointer">
+            🚪 Sair da Sala
+          </button>
+        `;
+        document.getElementById('lobby-host-name-span').textContent = data.p1Name || 'o anfitrião';
+      }
+    }
+
+    async function startOnlineMatch() {
+      if (!currentUser || !currentRoomCode || !lastRoomSnapshot || myPlayerIndex !== 0) return;
+      const selectedIds = lastRoomSnapshot.selectedIngredients || [];
+      if (selectedIds.length < 4 || !lastRoomSnapshot.p2Uid) return;
+
+      const shuffledDeck = shuffleArray(selectedIds);
+      const firstIngId = shuffledDeck.pop();
+
+      try {
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          status: 'playing',
+          p1Money: INITIAL_BUDGET,
+          p1WonItems: [],
+          p2Money: INITIAL_BUDGET,
+          p2WonItems: [],
+          deck: shuffledDeck,
+          itemNumber: 1,
+          currentIngredientId: firstIngId,
+          currentBid: 0,
+          highestBidderIndex: null,
+          activeTurnIndex: 0,
+          passesCount: 0,
+          bidHistory: [],
+          roundPhase: 'bidding',
+          roundOutcome: null,
+          updatedAt: Date.now()
+        });
+        playBidRaiseSound(5);
+      } catch (e) {
+        console.error('Erro ao iniciar partida online:', e);
+        showToast('Erro ao iniciar partida. Tente novamente.');
+      }
+    }
+
+    /**
+     * Sincroniza qualquer atualização vinda do Firestore (lobby, leilão ou final)
+     * instantaneamente para a tela do aparelho.
+     */
+    function syncRoomStateToUI(data, prevData) {
+      if (data.status === 'lobby') {
+        if (autoAdvanceTimer) {
+          clearTimeout(autoAdvanceTimer);
+          autoAdvanceTimer = null;
+        }
+        renderLobbyView(data);
+        if (prevData && !prevData.p2Uid && data.p2Uid && myPlayerIndex === 0) {
+          playFanfareSound();
+          showToast(`🎉 ${data.p2Name} entrou na sala!`);
+        }
+        return;
+      }
+
+      // Atualiza gameState local a partir do documento da sala
+      const pool = (data.selectedIngredients || [])
+        .map(id => INGREDIENTS_DB.find(i => i.id === id))
+        .filter(Boolean);
+
+      const currentIng = INGREDIENTS_DB.find(i => i.id === data.currentIngredientId) || pool[0] || INGREDIENTS_DB[0];
+
+      gameState = {
+        isOnline: true,
+        mode: data.mode || 'pastel',
+        players: [
+          {
+            name: data.p1Name || 'Jogador 1',
+            money: typeof data.p1Money === 'number' ? data.p1Money : INITIAL_BUDGET,
+            wonItems: data.p1WonItems || []
+          },
+          {
+            name: data.p2Name || 'Jogador 2',
+            money: typeof data.p2Money === 'number' ? data.p2Money : INITIAL_BUDGET,
+            wonItems: data.p2WonItems || []
+          }
+        ],
+        selectedPool: pool,
+        deck: data.deck || [],
+        itemNumber: data.itemNumber || 1,
+        currentIngredient: currentIng,
+        currentBid: data.currentBid || 0,
+        highestBidderIndex: data.highestBidderIndex !== undefined ? data.highestBidderIndex : null,
+        activeTurnIndex: data.activeTurnIndex || 0,
+        passesCount: data.passesCount || 0,
+        bidHistory: data.bidHistory || [],
+        customSliderVal: (data.currentBid || 0) + 1,
+        roundPhase: data.roundPhase || 'bidding',
+        roundOutcome: data.roundOutcome || null
+      };
+
+      // Sons de feedback quando o oponente faz um lance
+      if (prevData && prevData.status === 'playing' && data.status === 'playing') {
+        if (data.currentBid > (prevData.currentBid || 0) && data.highestBidderIndex !== myPlayerIndex) {
+          playBidRaiseSound(data.currentBid);
+        }
+        if (prevData.roundPhase === 'bidding' && data.roundPhase === 'hammer') {
+          if (data.roundOutcome?.type === 'won') playGavelSound();
+          else playTone(280, 'triangle', 0.18, 0.14);
+        }
+      }
+
+      if (data.status === 'finished') {
+        if (autoAdvanceTimer) {
+          clearTimeout(autoAdvanceTimer);
+          autoAdvanceTimer = null;
+        }
+        showFinalResults();
+        return;
+      }
+
+      // status === 'playing'
+      document.getElementById('screen-setup').classList.add('hidden');
+      document.getElementById('screen-final').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+      document.getElementById('header-round-badge').classList.remove('hidden');
+      document.getElementById('header-round-badge').textContent = `Disputa #${gameState.itemNumber}`;
+      document.getElementById('header-mode-icon').textContent = gameState.mode === 'pizza' ? '🍕' : '🥟';
+
+      renderCurrentIngredientHeader(false);
+      renderAuctionStage();
+
+      // Se a rodada acabou de bater o martelo, o anfitrião agenda o avanço automático em 2.5s
+      if (gameState.roundPhase === 'hammer') {
+        if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+        if (myPlayerIndex === 0) {
+          const expectedItemNum = gameState.itemNumber;
+          autoAdvanceTimer = setTimeout(() => {
+            if (lastRoomSnapshot && lastRoomSnapshot.status === 'playing' && lastRoomSnapshot.roundPhase === 'hammer' && lastRoomSnapshot.itemNumber === expectedItemNum) {
+              advanceToNextItem();
+            }
+          }, 2500);
+        }
+      } else if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       4D. CONFIGURAÇÃO OFFLINE (MESMO CELULAR)
+       ------------------------------------------------------------------------- */
+    function renderSetupIngredientsGrid() {
+      const grid = document.getElementById('setup-ingredients-grid');
+      if (!grid) return;
+      grid.innerHTML = INGREDIENTS_DB.map(ing => {
+        const isSelected = selectedIngredientIds.has(ing.id);
+        const isSweet = ing.category === 'Doce';
+
+        const cardStyle = isSelected
+          ? 'border-2 border-amber-500 bg-amber-50/90 shadow-xs'
+          : 'border-2 border-stone-200 bg-stone-50/70 opacity-60 hover:opacity-90';
+
+        const catBadge = isSweet
+          ? 'bg-pink-100 text-pink-800'
+          : 'bg-emerald-100 text-emerald-800';
+
+        return `
+          <button
+            type="button"
+            onclick="toggleSetupIngredient('${ing.id}')"
+            class="${cardStyle} rounded-2xl p-2.5 text-left transition-all flex items-center gap-2.5 cursor-pointer relative"
+          >
+            <span class="text-2xl sm:text-3xl shrink-0 select-none">${ing.emoji}</span>
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-xs sm:text-sm text-stone-900 leading-tight truncate">
+                ${ing.shortName}
+              </div>
+              <div class="flex items-center gap-1 mt-1">
+                <span class="text-[10px] font-extrabold px-1.5 py-0.2 rounded ${catBadge}">
+                  ${ing.category}
+                </span>
+                <span class="text-[10px] font-bold text-stone-500">
+                  +${ing.points}pts
+                </span>
+              </div>
+            </div>
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-extrabold shrink-0 ${isSelected ? 'bg-amber-500 text-white' : 'bg-stone-200 text-stone-400'}">
+              ${isSelected ? '✓' : ''}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      const count = selectedIngredientIds.size;
+      document.getElementById('selected-count-badge').textContent = count === 1 ? '1 selecionado' : `${count} selecionados`;
+
+      const warning = document.getElementById('setup-min-warning');
+      const startBtn = document.getElementById('btn-start-game');
+      if (count < 4) {
+        warning.classList.remove('hidden');
+        startBtn.disabled = true;
+      } else {
+        warning.classList.add('hidden');
+        startBtn.disabled = false;
+      }
+    }
+
+    function toggleSetupIngredient(id) {
+      if (selectedIngredientIds.has(id)) selectedIngredientIds.delete(id);
+      else selectedIngredientIds.add(id);
+      renderSetupIngredientsGrid();
+      playTone(selectedIngredientIds.has(id) ? 620 : 420, 'sine', 0.06, 0.08);
+    }
+
+    function applyIngredientPreset(preset) {
+      selectedIngredientIds.clear();
+      if (preset === 'all') {
+        INGREDIENTS_DB.forEach(i => selectedIngredientIds.add(i.id));
+      } else if (preset === 'savory') {
+        INGREDIENTS_DB.filter(i => i.category === 'Salgado').forEach(i => selectedIngredientIds.add(i.id));
+      } else if (preset === 'classic') {
+        INGREDIENTS_DB.filter(i => i.classic).forEach(i => selectedIngredientIds.add(i.id));
+      }
+      renderSetupIngredientsGrid();
+      playBidRaiseSound(6);
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function startOfflineGame() {
+      if (selectedIngredientIds.size < 4) return;
+      const p1Name = document.getElementById('input-p1-name').value.trim() || 'Eu';
+      const p2Name = document.getElementById('input-p2-name').value.trim() || 'Namorada';
+      const pool = INGREDIENTS_DB.filter(i => selectedIngredientIds.has(i.id));
+
+      gameState = {
+        isOnline: false,
+        mode: selectedMode,
+        players: [
+          { name: p1Name, money: INITIAL_BUDGET, wonItems: [] },
+          { name: p2Name, money: INITIAL_BUDGET, wonItems: [] }
+        ],
+        selectedPool: pool,
+        deck: shuffleArray(pool),
+        itemNumber: 1,
+        currentIngredient: null,
+        currentBid: 0,
+        highestBidderIndex: null,
+        activeTurnIndex: 0,
+        passesCount: 0,
+        bidHistory: [],
+        customSliderVal: 1,
+        roundPhase: 'bidding',
+        roundOutcome: null
+      };
+
+      document.getElementById('screen-setup').classList.add('hidden');
+      document.getElementById('screen-final').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+      document.getElementById('header-round-badge').classList.remove('hidden');
+
+      playBidRaiseSound(5);
+      startNextOfflineItem();
+    }
+
+    function startNextOfflineItem() {
+      if (gameState.players[0].money <= 0 && gameState.players[1].money <= 0) {
+        showFinalResults();
+        return;
+      }
+
+      let replenished = false;
+      if (gameState.deck.length === 0) {
+        gameState.deck = shuffleArray(gameState.selectedPool);
+        replenished = true;
+      }
+
+      gameState.currentIngredient = gameState.deck.pop();
+      gameState.currentBid = 0;
+      gameState.highestBidderIndex = null;
+      gameState.passesCount = 0;
+      gameState.bidHistory = [];
+      gameState.roundPhase = 'bidding';
+      gameState.roundOutcome = null;
+
+      const preferredOpener = (gameState.itemNumber - 1) % 2;
+      gameState.activeTurnIndex = gameState.players[preferredOpener].money > 0
+        ? preferredOpener
+        : 1 - preferredOpener;
+
+      document.getElementById('header-round-badge').textContent = `Disputa #${gameState.itemNumber}`;
+      renderCurrentIngredientHeader(replenished);
+      renderAuctionStage();
+    }
+
+    /* -------------------------------------------------------------------------
+       5. ARENA DO LEILÃO ABERTO (SINCRONIZADO ONLINE + OFFLINE)
+       ------------------------------------------------------------------------- */
+    function setDishViewMode(viewMode) {
+      dishViewMode = viewMode;
+      renderAuctionStage();
+    }
+
+    function renderCurrentIngredientHeader(replenished = false) {
+      const ing = gameState.currentIngredient;
+      if (!ing) return;
+      document.getElementById('auction-item-icon').textContent = ing.emoji;
+      document.getElementById('auction-item-name').textContent = ing.name;
+      document.getElementById('auction-item-category').textContent = ing.category;
+      document.getElementById('auction-item-points').textContent = `⭐ Sabor: +${ing.points} pts`;
+      document.getElementById('auction-item-desc').textContent = ing.desc;
+      document.getElementById('auction-item-hint').textContent = `💡 ${ing.hint}`;
+
+      const rem = gameState.deck.length;
+      document.getElementById('auction-deck-remaining').textContent = replenished
+        ? `🔄 Porção extra! Restam ${rem}`
+        : `Na fila: ${rem}`;
+    }
+
+    function renderAuctionStage() {
+      const [p1, p2] = gameState.players;
+      const activeIdx = gameState.activeTurnIndex;
+      const activePlayer = gameState.players[activeIdx];
+      const otherPlayer = gameState.players[1 - activeIdx];
+      const isHammerClosed = gameState.roundPhase === 'hammer';
+
+      // 1. Gerencia abas de visualização de prato no modo 2 Celulares
+      const onlineTabs = document.getElementById('online-dish-tabs');
+      const spotlightCard = document.getElementById('online-single-dish-spotlight');
+      const bothGrid = document.getElementById('hud-both-grid');
+
+      if (gameState.isOnline) {
+        onlineTabs.classList.remove('hidden');
+        const me = gameState.players[myPlayerIndex];
+        const partner = gameState.players[1 - myPlayerIndex];
+
+        document.getElementById('tab-view-mine').textContent = `🍽️ Meu Prato (${me.wonItems.length})`;
+        document.getElementById('tab-view-partner').textContent = `👀 ${partner.name} (${partner.wonItems.length})`;
+
+        const activeTabCls = 'flex-1 py-2 px-2.5 rounded-xl bg-amber-400 text-stone-950 font-extrabold text-xs sm:text-sm shadow-xs transition cursor-pointer';
+        const idleTabCls = 'flex-1 py-2 px-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs sm:text-sm transition cursor-pointer';
+
+        document.getElementById('tab-view-mine').className = dishViewMode === 'mine' ? activeTabCls : idleTabCls;
+        document.getElementById('tab-view-partner').className = dishViewMode === 'partner' ? activeTabCls : idleTabCls;
+        document.getElementById('tab-view-both').className = dishViewMode === 'both' ? activeTabCls : idleTabCls;
+
+        if (dishViewMode === 'both') {
+          spotlightCard.classList.add('hidden');
+          bothGrid.classList.remove('hidden');
+        } else {
+          bothGrid.classList.add('hidden');
+          spotlightCard.classList.remove('hidden');
+
+          const targetIdx = dishViewMode === 'mine' ? myPlayerIndex : (1 - myPlayerIndex);
+          const targetPlayer = gameState.players[targetIdx];
+          const otherP = gameState.players[1 - targetIdx];
+
+          spotlightCard.className = targetIdx === 0
+            ? 'bg-white rounded-3xl p-4 border-3 border-teal-400 shadow-md'
+            : 'bg-white rounded-3xl p-4 border-3 border-rose-400 shadow-md';
+
+          document.getElementById('spotlight-avatar').textContent = targetIdx === 0 ? '😎' : '😍';
+          document.getElementById('spotlight-role-label').textContent = dishViewMode === 'mine'
+            ? 'Seu Prato Montado ao Vivo'
+            : `Prato de ${targetPlayer.name} ao Vivo`;
+          document.getElementById('spotlight-name').textContent = targetPlayer.name;
+          document.getElementById('spotlight-money').textContent = `R$ ${targetPlayer.money}`;
+          document.getElementById('spotlight-other-label').textContent = `Saldo ${otherP.name}`;
+          document.getElementById('spotlight-other-money').textContent = `R$ ${otherP.money}`;
+          document.getElementById('spotlight-dish-svg').innerHTML = renderDishSVG(gameState.mode, targetPlayer.wonItems);
+
+          const spotChips = document.getElementById('spotlight-chips');
+          if (targetPlayer.wonItems.length === 0) {
+            spotChips.innerHTML = `<span class="text-xs text-stone-400 italic">Nenhum ingrediente arrematado ainda</span>`;
+          } else {
+            spotChips.innerHTML = targetPlayer.wonItems.map(item => {
+              const info = INGREDIENTS_DB.find(i => i.id === item.id);
+              return `<span class="inline-flex items-center gap-1 text-xs font-bold bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-lg">${info.emoji} ${info.shortName} <span class="text-stone-500">R$${item.price}</span></span>`;
+            }).join('');
+          }
+        }
+      } else {
+        onlineTabs.classList.add('hidden');
+        spotlightCard.classList.add('hidden');
+        bothGrid.classList.remove('hidden');
+      }
+
+      // 2. Atualiza HUD Lado a Lado
+      [0, 1].forEach(idx => {
+        const p = gameState.players[idx];
+        const prefix = idx === 0 ? 'p1' : 'p2';
+        const isTurn = !isHammerClosed && activeIdx === idx;
+        const card = document.getElementById(`hud-card-${prefix}`);
+        const tag = document.getElementById(`hud-${prefix}-turn-tag`);
+
+        const meSuffix = (gameState.isOnline && idx === myPlayerIndex) ? ' (Você)' : '';
+        document.getElementById(`hud-${prefix}-name`).textContent = `${p.name}${meSuffix}`;
+        document.getElementById(`hud-${prefix}-money`).textContent = `R$ ${p.money}`;
+        document.getElementById(`hud-${prefix}-dish`).innerHTML = renderDishSVG(gameState.mode, p.wonItems);
+
+        if (idx === 0) {
+          card.className = isTurn
+            ? 'bg-white rounded-3xl p-3 sm:p-4 border-4 border-teal-500 ring-4 ring-teal-200/70 shadow-lg transition-all relative'
+            : 'bg-white rounded-3xl p-3 sm:p-4 border-2 border-teal-200 shadow-sm transition-all relative opacity-95';
+          tag.textContent = p.money === 0 ? 'Sem saldo' : (isTurn ? '⚡ Na vez!' : 'Aguardando');
+          tag.className = isTurn
+            ? 'inline-block text-[10px] sm:text-xs font-extrabold uppercase tracking-wide px-2.5 py-0.5 rounded-full mt-0.5 bg-teal-600 text-white'
+            : 'inline-block text-[10px] sm:text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full mt-0.5 bg-stone-100 text-stone-500';
+        } else {
+          card.className = isTurn
+            ? 'bg-white rounded-3xl p-3 sm:p-4 border-4 border-rose-500 ring-4 ring-rose-200/70 shadow-lg transition-all relative'
+            : 'bg-white rounded-3xl p-3 sm:p-4 border-2 border-rose-200 shadow-sm transition-all relative opacity-95';
+          tag.textContent = p.money === 0 ? 'Sem saldo' : (isTurn ? '⚡ Na vez!' : 'Aguardando');
+          tag.className = isTurn
+            ? 'inline-block text-[10px] sm:text-xs font-extrabold uppercase tracking-wide px-2.5 py-0.5 rounded-full mt-0.5 bg-rose-600 text-white'
+            : 'inline-block text-[10px] sm:text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full mt-0.5 bg-stone-100 text-stone-500';
+        }
+
+        const chipsBox = document.getElementById(`hud-${prefix}-chips`);
+        if (p.wonItems.length === 0) {
+          chipsBox.innerHTML = `<span class="text-[11px] text-stone-400 italic">Nenhum ingrediente ainda</span>`;
+        } else {
+          chipsBox.innerHTML = p.wonItems.map(item => {
+            const info = INGREDIENTS_DB.find(i => i.id === item.id);
+            return `<span class="inline-flex items-center gap-0.5 text-[11px] font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded-md">${info.emoji} <span class="text-stone-600">R$${item.price}</span></span>`;
+          }).join('');
+        }
+      });
+
+      // 3. Banner de Status do Lance Atual
+      const statusBanner = document.getElementById('bid-status-banner');
+      const statusKicker = document.getElementById('bid-status-kicker');
+      const statusHeadline = document.getElementById('bid-status-headline');
+      const statusSubtext = document.getElementById('bid-status-subtext');
+
+      if (gameState.currentBid === 0) {
+        statusBanner.className = 'rounded-2xl p-4 border-2 border-amber-300 bg-amber-50/80 text-center mb-4 transition-all';
+        statusKicker.textContent = otherPlayer.money === 0
+          ? `⚠️ ${otherPlayer.name} já zerou o saldo!`
+          : 'Abertura do Leilão';
+        statusHeadline.textContent = 'Lance atual: R$ 0 (Ninguém apostou ainda)';
+        statusSubtext.textContent = `Vez de ${activePlayer.name} abrir o leilão ou passar!`;
+      } else {
+        const leader = gameState.players[gameState.highestBidderIndex];
+        const isLeaderP1 = gameState.highestBidderIndex === 0;
+        statusBanner.className = isLeaderP1
+          ? 'rounded-2xl p-4 border-3 border-teal-400 bg-p1-light text-center mb-4 transition-all'
+          : 'rounded-2xl p-4 border-3 border-rose-400 bg-p2-light text-center mb-4 transition-all';
+        statusKicker.textContent = '🔥 Disputa em Andamento!';
+        statusHeadline.textContent = `Lance atual: R$ ${gameState.currentBid} — de ${leader.name}`;
+        statusSubtext.textContent = `Vez de ${activePlayer.name}: cubra com R$ ${gameState.currentBid + 1}+ ou deixe ${leader.name} levar!`;
+      }
+
+      // 4. Histórico da disputa atual
+      const histWrap = document.getElementById('bid-history-wrapper');
+      const histTrail = document.getElementById('bid-history-trail');
+      if (gameState.bidHistory.length === 0) {
+        histWrap.classList.add('hidden');
+      } else {
+        histWrap.classList.remove('hidden');
+        histTrail.innerHTML = gameState.bidHistory.map((h, i) => {
+          const pillClass = h.playerIdx === 0
+            ? 'bg-teal-100 text-teal-900 border-teal-300'
+            : 'bg-rose-100 text-rose-900 border-rose-300';
+          const arrow = i > 0 ? `<span class="text-stone-400 text-xs">→</span>` : '';
+          return `${arrow}<span class="text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${pillClass}">${h.text}</span>`;
+        }).join('');
+      }
+
+      // 5. Se o Martelo já bateu nesta rodada, exibe o painel de resultado
+      const controlsArea = document.getElementById('bidding-controls-area');
+      const waitingArea = document.getElementById('opponent-waiting-area');
+      const hammerArea = document.getElementById('hammer-result-area');
+
+      if (isHammerClosed && gameState.roundOutcome) {
+        controlsArea.classList.add('hidden');
+        waitingArea.classList.add('hidden');
+        hammerArea.classList.remove('hidden');
+
+        const out = gameState.roundOutcome;
+        const box = document.getElementById('hammer-outcome-box');
+        const ing = INGREDIENTS_DB.find(i => i.id === out.ingId) || gameState.currentIngredient;
+
+        if (out.type === 'skipped') {
+          box.className = 'p-5 rounded-3xl bg-stone-100 border-3 border-stone-300 text-stone-800 max-w-xl mx-auto shadow-xs';
+          document.getElementById('hammer-outcome-title').textContent = `💨 Ninguém quis ${ing.emoji} ${ing.shortName}!`;
+          document.getElementById('hammer-outcome-desc').textContent = 'Os dois passaram! Partindo para o próximo ingrediente...';
+        } else {
+          const winner = gameState.players[out.winnerIdx];
+          box.className = out.winnerIdx === 0
+            ? 'p-5 rounded-3xl bg-p1-light border-3 border-teal-500 text-teal-950 max-w-xl mx-auto shadow-sm'
+            : 'p-5 rounded-3xl bg-p2-light border-3 border-rose-500 text-rose-950 max-w-xl mx-auto shadow-sm';
+          const dishLabel = gameState.mode === 'pastel' ? 'pastel' : 'pizza';
+          document.getElementById('hammer-outcome-title').textContent =
+            `🎉 VENDIDO! ${winner.name} levou ${ing.emoji} ${ing.shortName} por R$ ${out.price}!`;
+          document.getElementById('hammer-outcome-desc').textContent =
+            `${out.reasonText} Colocado em cima ${gameState.mode === 'pastel' ? 'do' : 'da'} ${dishLabel} de ${winner.name}!`;
+        }
+
+        updateNextItemButton();
+        return;
+      }
+
+      hammerArea.classList.add('hidden');
+
+      // 6. Verifica se no modo 2 Celulares é a vez deste aparelho ou do parceiro
+      const isMyTurn = !gameState.isOnline || (activeIdx === myPlayerIndex);
+
+      if (!isMyTurn) {
+        controlsArea.classList.add('hidden');
+        waitingArea.classList.remove('hidden');
+        document.getElementById('waiting-opponent-headline').textContent =
+          `Aguardando ${activePlayer.name} dar o lance ou cobrir...`;
+        document.getElementById('waiting-opponent-sub').textContent =
+          gameState.currentBid === 0
+            ? `${activePlayer.name} está decidindo se abre o leilão ou passa.`
+            : `Seu lance atual é R$ ${gameState.currentBid}. Aguarde ${activePlayer.name} responder no celular dele(a)!`;
+        return;
+      }
+
+      waitingArea.classList.add('hidden');
+      controlsArea.classList.remove('hidden');
+
+      // 7. Configura Controles Ativos do Jogador da Vez
+      const turnCard = document.getElementById('active-turn-card');
+      const turnName = document.getElementById('turn-player-name');
+      const turnAvatar = document.getElementById('turn-player-avatar');
+      const turnBalance = document.getElementById('turn-player-balance');
+      const turnKicker = document.getElementById('turn-player-kicker');
+
+      turnName.textContent = activePlayer.name;
+      turnAvatar.textContent = activeIdx === 0 ? '😎' : '😍';
+      turnBalance.textContent = `R$ ${activePlayer.money}`;
+      turnKicker.textContent = gameState.currentBid === 0
+        ? 'Sua vez! Dê o lance inicial ou passe'
+        : 'Sua vez! Cubra o lance ou passe';
+
+      if (activeIdx === 0) {
+        turnCard.className = 'rounded-3xl p-4 sm:p-5 border-3 border-teal-400 bg-p1-light/70 transition-all';
+        turnName.className = 'font-display text-2xl sm:text-3xl font-bold text-teal-900 leading-tight';
+      } else {
+        turnCard.className = 'rounded-3xl p-4 sm:p-5 border-3 border-rose-400 bg-p2-light/70 transition-all';
+        turnName.className = 'font-display text-2xl sm:text-3xl font-bold text-rose-900 leading-tight';
+      }
+
+      const minAllowed = gameState.currentBid + 1;
+      const maxAllowed = activePlayer.money;
+      const quickBox = document.getElementById('quick-bid-buttons');
+
+      const btnBaseColor = activeIdx === 0
+        ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-[0_3px_0_#115E59]'
+        : 'bg-rose-600 hover:bg-rose-700 text-white shadow-[0_3px_0_#9F1239]';
+
+      if (gameState.currentBid === 0) {
+        const opts = [
+          { label: 'Dar R$ 1', val: 1 },
+          { label: 'Dar R$ 2', val: 2 },
+          { label: 'Dar R$ 5', val: 5 },
+          { label: `🔥 Tudo (R$ ${maxAllowed})`, val: maxAllowed }
+        ];
+        quickBox.innerHTML = opts.map(o => `
+          <button
+            type="button"
+            onclick="placeBid(${o.val})"
+            ${o.val > maxAllowed ? 'disabled' : ''}
+            class="btn-3d py-3 px-3 rounded-2xl ${btnBaseColor} font-extrabold text-xs sm:text-sm cursor-pointer"
+          >
+            ${o.label}
+          </button>
+        `).join('');
+      } else {
+        const c1 = gameState.currentBid + 1;
+        const c2 = gameState.currentBid + 2;
+        const c5 = gameState.currentBid + 5;
+        const opts = [
+          { label: `Cobrir (+R$ 1 → R$ ${c1})`, val: c1 },
+          { label: `+R$ 2 (→ R$ ${c2})`, val: c2 },
+          { label: `+R$ 5 (→ R$ ${c5})`, val: c5 },
+          { label: `🔥 All-in (R$ ${maxAllowed})`, val: maxAllowed }
+        ];
+        quickBox.innerHTML = opts.map(o => `
+          <button
+            type="button"
+            onclick="placeBid(${o.val})"
+            ${o.val > maxAllowed || o.val < minAllowed ? 'disabled' : ''}
+            class="btn-3d py-3 px-3 rounded-2xl ${btnBaseColor} font-extrabold text-xs sm:text-sm cursor-pointer"
+          >
+            ${o.label}
+          </button>
+        `).join('');
+      }
+
+      const slider = document.getElementById('custom-bid-slider');
+      slider.min = minAllowed;
+      slider.max = maxAllowed;
+      gameState.customSliderVal = minAllowed;
+      slider.value = minAllowed;
+      updateCustomBidSlider(minAllowed);
+
+      const btnFold = document.getElementById('btn-fold-or-pass');
+      if (gameState.currentBid === 0) {
+        btnFold.textContent = '⏭️ Passar (Não quero)';
+        btnFold.className = 'btn-3d w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-stone-700 hover:bg-stone-800 text-white font-display text-lg sm:text-xl font-bold shadow-[0_4px_0_#292524] cursor-pointer';
+      } else {
+        const leaderName = gameState.players[gameState.highestBidderIndex].name;
+        btnFold.textContent = `🏳️ Desistir (Deixar ${leaderName} levar)`;
+        btnFold.className = 'btn-3d w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-stone-800 hover:bg-stone-950 text-white font-display text-lg sm:text-xl font-bold shadow-[0_4px_0_#1C1917] cursor-pointer';
+      }
+
+      const btnFinishEarly = document.getElementById('btn-finish-early');
+      if (otherPlayer.money === 0) btnFinishEarly.classList.remove('hidden');
+      else btnFinishEarly.classList.add('hidden');
+    }
+
+    function updateCustomBidSlider(val) {
+      const activePlayer = gameState.players[gameState.activeTurnIndex];
+      const minAllowed = gameState.currentBid + 1;
+      const clamped = Math.max(minAllowed, Math.min(activePlayer.money, val));
+      gameState.customSliderVal = clamped;
+      document.getElementById('custom-bid-slider').value = clamped;
+      document.getElementById('custom-bid-preview').textContent = `R$ ${clamped}`;
+      document.getElementById('btn-submit-custom-bid').textContent =
+        gameState.currentBid === 0 ? `Abrir R$ ${clamped}` : `Cobrir R$ ${clamped}`;
+    }
+
+    function stepCustomBid(delta) {
+      updateCustomBidSlider(gameState.customSliderVal + delta);
+      playTone(540, 'sine', 0.04, 0.08);
+    }
+
+    function submitCustomBid() {
+      placeBid(gameState.customSliderVal);
+    }
+
+    async function placeBid(amount) {
+      if (gameState.isOnline && gameState.activeTurnIndex !== myPlayerIndex) return;
+      if (gameState.roundPhase !== 'bidding') return;
+
+      const bidderIdx = gameState.activeTurnIndex;
+      const bidder = gameState.players[bidderIdx];
+      const opponentIdx = 1 - bidderIdx;
+      const opponent = gameState.players[opponentIdx];
+
+      if (amount <= gameState.currentBid || amount > bidder.money) return;
+
+      const isOpening = gameState.currentBid === 0;
+      const newHistory = [
+        ...gameState.bidHistory,
+        {
+          playerIdx: bidderIdx,
+          text: isOpening ? `${bidder.name} abriu R$ ${amount}` : `${bidder.name} cobriu R$ ${amount}`
+        }
+      ];
+
+      playBidRaiseSound(amount);
+
+      // Se o oponente não tem saldo suficiente para cobrir (money < amount + 1), bate o martelo!
+      if (opponent.money < amount + 1) {
+        const autoReason = opponent.money === 0
+          ? `${opponent.name} já zerou o saldo!`
+          : `${opponent.name} tem apenas R$ ${opponent.money} e não consegue cobrir R$ ${amount}!`;
+
+        const newWinnerMoney = Math.max(0, bidder.money - amount);
+        const newWinnerItems = [...bidder.wonItems, { id: gameState.currentIngredient.id, price: amount }];
+        const outcome = {
+          type: 'won',
+          winnerIdx: bidderIdx,
+          price: amount,
+          ingId: gameState.currentIngredient.id,
+          reasonText: autoReason
+        };
+
+        if (gameState.isOnline) {
+          const moneyKey = bidderIdx === 0 ? 'p1Money' : 'p2Money';
+          const itemsKey = bidderIdx === 0 ? 'p1WonItems' : 'p2WonItems';
+          await updateDoc(getRoomDocRef(currentRoomCode), {
+            currentBid: amount,
+            highestBidderIndex: bidderIdx,
+            bidHistory: newHistory,
+            [moneyKey]: newWinnerMoney,
+            [itemsKey]: newWinnerItems,
+            roundPhase: 'hammer',
+            roundOutcome: outcome,
+            updatedAt: Date.now()
+          });
+        } else {
+          gameState.currentBid = amount;
+          gameState.highestBidderIndex = bidderIdx;
+          gameState.bidHistory = newHistory;
+          bidder.money = newWinnerMoney;
+          bidder.wonItems = newWinnerItems;
+          gameState.roundPhase = 'hammer';
+          gameState.roundOutcome = outcome;
+          playGavelSound();
+          renderAuctionStage();
+        }
+        return;
+      }
+
+      // Passa a vez para o oponente cobrir
+      if (gameState.isOnline) {
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          currentBid: amount,
+          highestBidderIndex: bidderIdx,
+          activeTurnIndex: opponentIdx,
+          bidHistory: newHistory,
+          updatedAt: Date.now()
+        });
+      } else {
+        gameState.currentBid = amount;
+        gameState.highestBidderIndex = bidderIdx;
+        gameState.activeTurnIndex = opponentIdx;
+        gameState.bidHistory = newHistory;
+        renderAuctionStage();
+      }
+    }
+
+    async function handlePassOrFold() {
+      if (gameState.isOnline && gameState.activeTurnIndex !== myPlayerIndex) return;
+      if (gameState.roundPhase !== 'bidding') return;
+
+      const actorIdx = gameState.activeTurnIndex;
+      const actor = gameState.players[actorIdx];
+      const opponentIdx = 1 - actorIdx;
+      const opponent = gameState.players[opponentIdx];
+
+      // Caso A: Ninguém apostou ainda (R$ 0) -> Passar
+      if (gameState.currentBid === 0) {
+        const newPasses = gameState.passesCount + 1;
+        const newHistory = [
+          ...gameState.bidHistory,
+          { playerIdx: actorIdx, text: `${actor.name} passou` }
+        ];
+        playTone(340, 'sine', 0.1, 0.1);
+
+        // Primeiro a passar, e o outro ainda tem saldo: passa a vez para o outro
+        if (newPasses === 1 && opponent.money > 0) {
+          if (gameState.isOnline) {
+            await updateDoc(getRoomDocRef(currentRoomCode), {
+              passesCount: newPasses,
+              activeTurnIndex: opponentIdx,
+              bidHistory: newHistory,
+              updatedAt: Date.now()
+            });
+          } else {
+            gameState.passesCount = newPasses;
+            gameState.activeTurnIndex = opponentIdx;
+            gameState.bidHistory = newHistory;
+            renderAuctionStage();
+          }
+          return;
+        }
+
+        // Ambos passaram (R$ 0): pula o ingrediente!
+        const outcome = {
+          type: 'skipped',
+          ingId: gameState.currentIngredient.id
+        };
+
+        if (gameState.isOnline) {
+          await updateDoc(getRoomDocRef(currentRoomCode), {
+            passesCount: newPasses,
+            bidHistory: newHistory,
+            roundPhase: 'hammer',
+            roundOutcome: outcome,
+            updatedAt: Date.now()
+          });
+        } else {
+          gameState.passesCount = newPasses;
+          gameState.bidHistory = newHistory;
+          gameState.roundPhase = 'hammer';
+          gameState.roundOutcome = outcome;
+          playTone(280, 'triangle', 0.18, 0.14);
+          renderAuctionStage();
+        }
+        return;
+      }
+
+      // Caso B: Já existe um lance maior -> Desistir e deixar o líder levar!
+      const winnerIdx = gameState.highestBidderIndex;
+      const winner = gameState.players[winnerIdx];
+      const winPrice = gameState.currentBid;
+      const newHistory = [
+        ...gameState.bidHistory,
+        { playerIdx: actorIdx, text: `${actor.name} desistiu` }
+      ];
+
+      const newWinnerMoney = Math.max(0, winner.money - winPrice);
+      const newWinnerItems = [...winner.wonItems, { id: gameState.currentIngredient.id, price: winPrice }];
+      const outcome = {
+        type: 'won',
+        winnerIdx,
+        price: winPrice,
+        ingId: gameState.currentIngredient.id,
+        reasonText: `${actor.name} desistiu e deixou ${winner.name} levar!`
+      };
+
+      if (gameState.isOnline) {
+        const moneyKey = winnerIdx === 0 ? 'p1Money' : 'p2Money';
+        const itemsKey = winnerIdx === 0 ? 'p1WonItems' : 'p2WonItems';
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          bidHistory: newHistory,
+          [moneyKey]: newWinnerMoney,
+          [itemsKey]: newWinnerItems,
+          roundPhase: 'hammer',
+          roundOutcome: outcome,
+          updatedAt: Date.now()
+        });
+      } else {
+        gameState.bidHistory = newHistory;
+        winner.money = newWinnerMoney;
+        winner.wonItems = newWinnerItems;
+        gameState.roundPhase = 'hammer';
+        gameState.roundOutcome = outcome;
+        playGavelSound();
+        renderAuctionStage();
+      }
+    }
+
+    function updateNextItemButton() {
+      const bothZero = gameState.players[0].money <= 0 && gameState.players[1].money <= 0;
+      const deckEmptyAndOnline = gameState.isOnline && gameState.deck.length === 0;
+      const isEnding = bothZero || deckEmptyAndOnline;
+
+      const btn = document.getElementById('btn-next-item');
+      const autoHint = document.getElementById('auto-advance-hint');
+
+      if (gameState.isOnline) {
+        autoHint.classList.remove('hidden');
+      } else {
+        autoHint.classList.add('hidden');
+      }
+
+      if (isEnding) {
+        const dishName = gameState.mode === 'pastel' ? 'Pastel Campeão' : 'Pizza Campeã';
+        btn.textContent = `🏆 Ver ${dishName}`;
+        btn.className = 'btn-3d px-9 py-4 rounded-2xl bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-stone-950 font-display text-xl sm:text-2xl font-bold shadow-[0_4px_0_#B45309] border-2 border-amber-200 cursor-pointer';
+      } else {
+        btn.textContent = 'Próximo Ingrediente ➡️';
+        btn.className = 'btn-3d px-9 py-4 rounded-2xl bg-gradient-to-b from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-display text-xl sm:text-2xl font-bold shadow-[0_4px_0_#991B1B] border-2 border-red-300 cursor-pointer';
+      }
+    }
+
+    async function advanceToNextItem() {
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+        autoAdvanceTimer = null;
+      }
+
+      if (!gameState.isOnline) {
+        if (gameState.players[0].money <= 0 && gameState.players[1].money <= 0) {
+          showFinalResults();
+        } else {
+          gameState.itemNumber += 1;
+          startNextOfflineItem();
+        }
+        return;
+      }
+
+      // Modo Online (2 Celulares)
+      if (!currentUser || !currentRoomCode || !lastRoomSnapshot) return;
+      if (lastRoomSnapshot.roundPhase !== 'hammer') return;
+
+      const bothZero = gameState.players[0].money <= 0 && gameState.players[1].money <= 0;
+      const deckCopy = [...gameState.deck];
+
+      // Se ambos zeraram OU acabaram os ingredientes selecionados da sala, encerra e mostra o veredito final!
+      if (bothZero || deckCopy.length === 0) {
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          status: 'finished',
+          updatedAt: Date.now()
+        });
+        return;
+      }
+
+      const nextIngId = deckCopy.pop();
+      const nextItemNum = gameState.itemNumber + 1;
+      const preferredOpener = (nextItemNum - 1) % 2;
+      const nextTurnIdx = gameState.players[preferredOpener].money > 0
+        ? preferredOpener
+        : 1 - preferredOpener;
+
+      await updateDoc(getRoomDocRef(currentRoomCode), {
+        deck: deckCopy,
+        itemNumber: nextItemNum,
+        currentIngredientId: nextIngId,
+        currentBid: 0,
+        highestBidderIndex: null,
+        activeTurnIndex: nextTurnIdx,
+        passesCount: 0,
+        bidHistory: [],
+        roundPhase: 'bidding',
+        roundOutcome: null,
+        updatedAt: Date.now()
+      });
+    }
+
+    async function finishMatchNow() {
+      if (gameState.isOnline) {
+        if (!currentUser || !currentRoomCode) return;
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          status: 'finished',
+          updatedAt: Date.now()
+        });
+      } else {
+        showFinalResults();
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       6. AVALIAÇÃO FINAL (MESTRE PASTELEIRO OU MESTRE PIZZAIOLO)
+       ------------------------------------------------------------------------- */
+    function evaluateDish(wonItems, mode) {
+      const uniqueIds = new Set(wonItems.map(i => i.id));
+      const has = (id) => uniqueIds.has(id);
+
+      const seenCount = {};
+      let baseScore = 0;
+      wonItems.forEach(entry => {
+        const info = INGREDIENTS_DB.find(i => i.id === entry.id);
+        seenCount[entry.id] = (seenCount[entry.id] || 0) + 1;
+        if (seenCount[entry.id] === 1) baseScore += info.points;
+        else baseScore += Math.round(info.points * 0.65);
+      });
+
+      const notes = [];
+      let bonusScore = 0;
+
+      if (has('carne_moida') && has('ovo') && has('azeitona')) {
+        bonusScore += 18;
+        notes.push({ type: 'bonus', title: '🏆 Clássico de Feira (+18 pts)', desc: 'Carne Moída + Ovo Cozido + Azeitonas: combinação lendária!' });
+      }
+      if (has('calabresa') && has('ovo') && has('azeitona') && has('tomate_oregano')) {
+        bonusScore += 20;
+        notes.push({ type: 'bonus', title: '🇵🇹 Portuguesa Raiz (+20 pts)', desc: 'Calabresa, Ovo, Azeitonas e Tomate & Orégano em perfeita harmonia!' });
+      }
+      if (has('frango') && has('catupiry')) {
+        bonusScore += 16;
+        notes.push({ type: 'bonus', title: '🍗 Frango com Catupiry Supremo (+16 pts)', desc: 'Cremosidade e sabor que conquistam qualquer jurado!' });
+      }
+      const cheeseCount = ['mussarela', 'catupiry', 'cheddar'].filter(has).length;
+      if (cheeseCount >= 3) {
+        bonusScore += 20;
+        notes.push({ type: 'bonus', title: '🧀 Explosão Triplo Queijo (+20 pts)', desc: 'Mussarela + Catupiry + Cheddar puxando fio a cada pedaço!' });
+      } else if (cheeseCount === 2) {
+        bonusScore += 10;
+        notes.push({ type: 'bonus', title: '🧀 Dupla de Queijos (+10 pts)', desc: 'Recheio super cremoso e bem equilibrado!' });
+      }
+      if (has('bacon') && has('calabresa')) {
+        bonusScore += 15;
+        notes.push({ type: 'bonus', title: '🥓 Dupla Defumada (+15 pts)', desc: 'Bacon Crocante + Calabresa com Cebola: aroma irresistível!' });
+      }
+      if (has('mussarela') && has('tomate_oregano')) {
+        bonusScore += 14;
+        notes.push({
+          type: 'bonus',
+          title: mode === 'pizza' ? '🇮🇹 Margherita Artesanal (+14 pts)' : '🍕 Sabor Pizza Italiana (+14 pts)',
+          desc: 'Mussarela derretida com Tomate Fresco & Orégano!'
+        });
+      }
+      if (has('goiabada') && (has('mussarela') || has('catupiry'))) {
+        bonusScore += 20;
+        notes.push({ type: 'bonus', title: '💘 Romeu & Julieta (+20 pts)', desc: 'O romance perfeito entre Goiabada Cremosa e Queijo!' });
+      }
+      if (has('chocolate') && has('banana')) {
+        bonusScore += 18;
+        notes.push({ type: 'bonus', title: '🍫 Doce Tentação (+18 pts)', desc: 'Chocolate ao Leite Derretido com Banana & Canela!' });
+      }
+      if (has('pimenta') && (has('carne_moida') || has('calabresa') || has('frango'))) {
+        bonusScore += 12;
+        notes.push({ type: 'bonus', title: '🌶️ Toque Picante na Medida (+12 pts)', desc: 'Pimenta Malagueta dando personalidade ao recheio salgado!' });
+      }
+
+      const heavySavory = ['carne_moida', 'frango', 'bacon', 'calabresa', 'azeitona', 'tomate_oregano', 'ovo', 'palmito', 'milho_ervilha'].filter(has);
+      const heavySweet = ['chocolate', 'banana'].filter(has);
+
+      if (heavySavory.length > 0 && heavySweet.length > 0) {
+        const penalty = -14;
+        bonusScore += penalty;
+        const sName = INGREDIENTS_DB.find(i => i.id === heavySavory[0]).shortName;
+        const dName = INGREDIENTS_DB.find(i => i.id === heavySweet[0]).shortName;
+        const label = mode === 'pizza' ? '🚨 Crime Gastronômico Italiano' : '🤢 Gororoba Corajosa de Feira';
+        notes.push({ type: 'gororoba', title: `${label} (${penalty} pts)`, desc: `Misturou ${sName} com ${dName}?! O jurado quase desmaiou!` });
+      }
+      if (has('pimenta') && (has('chocolate') || has('banana') || has('goiabada'))) {
+        bonusScore -= 6;
+        notes.push({ type: 'gororoba', title: '🔥 Sobremesa Explosiva (-6 pts)', desc: 'Pimenta Malagueta no meio do doce? Coragem não faltou!' });
+      }
+      if (wonItems.length === 0) {
+        notes.push({
+          type: 'gororoba',
+          title: mode === 'pizza' ? '💨 Pizza só de Massa e Molho (0 pts)' : '💨 Pastel de Vento (0 pts)',
+          desc: 'Não arrematou nenhum recheio durante o leilão!'
+        });
+      } else if (notes.length === 0) {
+        notes.push({ type: 'neutral', title: '👍 Receita Bem Equilibrada', desc: 'Ingredientes saborosos sem misturas estranhas!' });
+      }
+
+      return { totalScore: Math.max(0, baseScore + bonusScore), notes };
+    }
+
+    function showFinalResults() {
+      document.getElementById('screen-setup').classList.add('hidden');
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-final').classList.remove('hidden');
+      document.getElementById('header-round-badge').classList.remove('hidden');
+      document.getElementById('header-round-badge').textContent = 'Resultado Final';
+
+      const isPizza = gameState.mode === 'pizza';
+      document.getElementById('final-mode-pill').textContent = isPizza
+        ? '🏆 VEREDITO DO MESTRE PIZZAIOLO NAPOLITANO'
+        : '🏆 VEREDITO DO MESTRE PASTELEIRO DA FEIRA';
+      document.getElementById('final-chef-title').textContent = isPizza
+        ? 'Palavra do Mestre Pizzaiolo Napolitano'
+        : 'Palavra do Mestre Pasteleiro da Feira';
+
+      const [p1, p2] = gameState.players;
+      const eval1 = evaluateDish(p1.wonItems, gameState.mode);
+      const eval2 = evaluateDish(p2.wonItems, gameState.mode);
+
+      const titleEl = document.getElementById('final-winner-title');
+      const subEl = document.getElementById('final-winner-subtitle');
+      const card1 = document.getElementById('final-card-p1');
+      const card2 = document.getElementById('final-card-p2');
+
+      if (eval1.totalScore > eval2.totalScore) {
+        titleEl.textContent = `🏆 ${p1.name} venceu o Duelo!`;
+        subEl.textContent = `Vitória deliciosa por ${eval1.totalScore} a ${eval2.totalScore} pontos!`;
+        card1.className = 'rounded-3xl p-5 border-4 border-teal-500 bg-p1-light/85 shadow-xl ring-4 ring-teal-200 flex flex-col justify-between';
+        card2.className = 'rounded-3xl p-5 border-2 border-stone-200 bg-white/90 flex flex-col justify-between';
+        document.getElementById('final-p1-badge').textContent = isPizza ? '👑 Pizza Campeã' : '👑 Pastel Campeão';
+        document.getElementById('final-p2-badge').textContent = '🥈 Vice-Campeão';
+      } else if (eval2.totalScore > eval1.totalScore) {
+        titleEl.textContent = `🏆 ${p2.name} venceu o Duelo!`;
+        subEl.textContent = `Vitória deliciosa por ${eval2.totalScore} a ${eval1.totalScore} pontos!`;
+        card2.className = 'rounded-3xl p-5 border-4 border-rose-500 bg-p2-light/85 shadow-xl ring-4 ring-rose-200 flex flex-col justify-between';
+        card1.className = 'rounded-3xl p-5 border-2 border-stone-200 bg-white/90 flex flex-col justify-between';
+        document.getElementById('final-p2-badge').textContent = isPizza ? '👑 Pizza Campeã' : '👑 Pastel Campeão';
+        document.getElementById('final-p1-badge').textContent = '🥈 Vice-Campeão';
+      } else {
+        titleEl.textContent = '🤝 Empate Perfeito de Casal!';
+        subEl.textContent = `Ambos fizeram ${eval1.totalScore} pontos — sintonia total na cozinha!`;
+        document.getElementById('final-p1-badge').textContent = '👑 Empate de Ouro';
+        document.getElementById('final-p2-badge').textContent = '👑 Empate de Ouro';
+      }
+
+      [
+        { player: p1, evalData: eval1, prefix: 'p1', idx: 0 },
+        { player: p2, evalData: eval2, prefix: 'p2', idx: 1 }
+      ].forEach(({ player, evalData, prefix, idx }) => {
+        const youLabel = (gameState.isOnline && idx === myPlayerIndex) ? ' (Você)' : '';
+        document.getElementById(`final-${prefix}-name`).textContent = `${player.name}${youLabel}`;
+        document.getElementById(`final-${prefix}-score`).textContent = `${evalData.totalScore} pts`;
+        document.getElementById(`final-${prefix}-dish`).innerHTML = renderDishSVG(gameState.mode, player.wonItems);
+
+        const ingBox = document.getElementById(`final-${prefix}-ingredients`);
+        if (player.wonItems.length === 0) {
+          ingBox.innerHTML = `<span class="text-xs italic text-stone-400">Nenhum ingrediente conquistado</span>`;
+        } else {
+          ingBox.innerHTML = player.wonItems.map(entry => {
+            const info = INGREDIENTS_DB.find(i => i.id === entry.id);
+            return `
+              <button
+                type="button"
+                onmouseenter="highlightFinalDishItem('${prefix}', '${entry.id}')"
+                onmouseleave="highlightFinalDishItem('${prefix}', null)"
+                onclick="highlightFinalDishItem('${prefix}', '${entry.id}')"
+                class="inline-flex items-center gap-1 text-xs font-bold bg-white hover:bg-amber-100 border border-stone-300 px-2.5 py-1 rounded-xl shadow-xs transition cursor-pointer"
+              >
+                <span>${info.emoji}</span>
+                <span>${info.shortName}</span>
+                <span class="text-stone-400">• R$${entry.price}</span>
+              </button>
+            `;
+          }).join('');
+        }
+
+        const notesBox = document.getElementById(`final-${prefix}-notes`);
+        notesBox.innerHTML = evalData.notes.map(n => {
+          let cls = 'bg-stone-100 border-stone-300 text-stone-800';
+          if (n.type === 'bonus') cls = 'bg-emerald-100 border-emerald-300 text-emerald-950';
+          if (n.type === 'gororoba') cls = 'bg-amber-100 border-amber-400 text-amber-950';
+          return `
+            <div class="p-2.5 rounded-xl border ${cls} text-xs">
+              <div class="font-extrabold">${n.title}</div>
+              <div class="opacity-90 mt-0.5">${n.desc}</div>
+            </div>
+          `;
+        }).join('');
+      });
+
+      const hasCrime = eval1.notes.some(n => n.type === 'gororoba') || eval2.notes.some(n => n.type === 'gororoba');
+      const chefComment = document.getElementById('final-chef-comment');
+      if (isPizza) {
+        chefComment.textContent = hasCrime
+          ? '"Mamma mia! Em Nápoles essa mistura ia dar o que falar, mas no amor e na pizza vale tudo! Quem perdeu hoje paga a próxima pizzaria!"'
+          : '"Bellissima! Massa assada no ponto, recheios dignos de pizzaria premiada! Quem perdeu hoje tem que pagar a pizza de verdade no fim de semana!"';
+      } else {
+        chefComment.textContent = hasCrime
+          ? '"Olha, em 30 anos na feira eu nunca vi uma mistura tão ousada assim! Quem perdeu hoje vai ter que pagar o caldo de cana!"'
+          : '"Que aula de pastelaria de feira! Recheios caprichados de dar água na boca. Quem perdeu hoje paga o pastel de verdade no próximo passeio!"';
+      }
+
+      playFanfareSound();
+      launchConfetti();
+    }
+
+    function highlightFinalDishItem(prefix, ingredientId) {
+      const idx = prefix === 'p1' ? 0 : 1;
+      const player = gameState.players[idx];
+      document.getElementById(`final-${prefix}-dish`).innerHTML =
+        renderDishSVG(gameState.mode, player.wonItems, ingredientId);
+    }
+
+    /* -------------------------------------------------------------------------
+       7. CONFETES, MODAIS E REINÍCIO DE PARTIDA
+       ------------------------------------------------------------------------- */
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti-canvas');
+      canvas.classList.remove('hidden');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const colors = ['#F59E0B', '#E11D48', '#0D9488', '#FACC15', '#10B981', '#FB7185'];
+      const pieces = Array.from({ length: 110 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: 8 + Math.random() * 8,
+        h: 5 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vy: 2.5 + Math.random() * 3.5,
+        vx: (Math.random() - 0.5) * 2.5,
+        rot: Math.random() * 360,
+        vrot: (Math.random() - 0.5) * 8
+      }));
+
+      let frames = 0;
+      function animateConfetti() {
+        frames += 1;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.rot += p.vrot;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        });
+
+        if (frames < 190) requestAnimationFrame(animateConfetti);
+        else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.classList.add('hidden');
+        }
+      }
+      requestAnimationFrame(animateConfetti);
+    }
+
+    function toggleRulesModal(show) {
+      const modal = document.getElementById('modal-rules');
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
+
+    function openDishModal(playerIdx) {
+      const player = gameState.players[playerIdx];
+      const dishLabel = gameState.mode === 'pastel' ? 'Pastel' : 'Pizza';
+      document.getElementById('dish-modal-title').textContent = `${dishLabel} de ${player.name}`;
+      document.getElementById('dish-modal-art').innerHTML = renderDishSVG(gameState.mode, player.wonItems);
+
+      const list = document.getElementById('dish-modal-list');
+      if (player.wonItems.length === 0) {
+        list.innerHTML = `<span class="text-xs italic text-stone-400">Nenhum ingrediente conquistado ainda</span>`;
+      } else {
+        list.innerHTML = player.wonItems.map(entry => {
+          const info = INGREDIENTS_DB.find(i => i.id === entry.id);
+          return `
+            <span class="inline-flex items-center gap-1 text-xs font-bold bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-xl">
+              ${info.emoji} ${info.shortName} (R$ ${entry.price})
+            </span>
+          `;
+        }).join('');
+      }
+      document.getElementById('modal-dish').classList.remove('hidden');
+    }
+
+    function closeDishModal() {
+      document.getElementById('modal-dish').classList.add('hidden');
+    }
+
+    async function rematchSameSetup() {
+      if (gameState.isOnline && currentRoomCode && currentUser) {
+        // Volta os dois celulares conectados para a Sala de Espera colaborativa
+        await updateDoc(getRoomDocRef(currentRoomCode), {
+          status: 'lobby',
+          p1Money: INITIAL_BUDGET,
+          p1WonItems: [],
+          p2Money: INITIAL_BUDGET,
+          p2WonItems: [],
+          roundPhase: 'bidding',
+          roundOutcome: null,
+          updatedAt: Date.now()
+        });
+      } else {
+        startOfflineGame();
+      }
+    }
+
+    function backToSetup() {
+      if (gameState.isOnline) {
+        leaveOnlineRoom();
+      } else {
+        document.getElementById('screen-final').classList.add('hidden');
+        document.getElementById('screen-game').classList.add('hidden');
+        document.getElementById('header-round-badge').classList.add('hidden');
+        document.getElementById('screen-setup').classList.remove('hidden');
+        renderSetupHeroPreview();
+      }
+    }
+
+    // Expõe funções globais para os atributos onclick/oninput do HTML
+    Object.assign(window, {
+      switchDeviceMode,
+      setMyOnlineName,
+      selectGameMode,
+      createOnlineRoom,
+      joinOnlineRoom,
+      leaveOnlineRoom,
+      copyRoomCode,
+      updateLobbyMode,
+      toggleLobbyIngredient,
+      applyLobbyPreset,
+      startOnlineMatch,
+      toggleSetupIngredient,
+      applyIngredientPreset,
+      startOfflineGame,
+      setDishViewMode,
+      updateCustomBidSlider,
+      stepCustomBid,
+      submitCustomBid,
+      placeBid,
+      handlePassOrFold,
+      advanceToNextItem,
+      finishMatchNow,
+      highlightFinalDishItem,
+      toggleRulesModal,
+      openDishModal,
+      closeDishModal,
+      rematchSameSetup,
+      backToSetup
+    });
+
+    // Inicializa Firebase + UI ao carregar
+    initFirebaseService();
+    renderSetupHeroPreview();
+    renderSetupIngredientsGrid();
+  </script>
+</body>
+</html>
